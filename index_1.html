@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liner Notes Consulting</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Noto+Serif+JP:wght@300;400;600&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0a0a;
+  --dark: #111418;
+  --charcoal: #1e2428;
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --cream: #f5f0e8;
+  --white: #ffffff;
+  --text-muted: rgba(255,255,255,0.75);
+  --text-dim: rgba(255,255,255,0.5);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { font-family:'Noto Sans JP',sans-serif; background:var(--charcoal); color:var(--white); overflow-x:hidden; }
+
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.1rem 4rem;
+  background:rgba(10,10,10,0.97);
+  border-bottom:1px solid rgba(201,168,76,0.25);
+}
+.nav-logo { font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:1rem; letter-spacing:0.15em; text-decoration:none; }
+.nav-right { display:flex; align-items:center; gap:2.5rem; }
+.nav-links { display:flex; gap:2rem; list-style:none; }
+.nav-links a { color:rgba(255,255,255,0.65); text-decoration:none; font-size:0.78rem; letter-spacing:0.1em; transition:color 0.3s; }
+.nav-links a:hover { color:var(--gold); }
+.lang-sw { display:flex; border:1px solid rgba(201,168,76,0.5); overflow:hidden; border-radius:2px; }
+.lbtn { padding:0.3rem 0.85rem; background:transparent; border:none; color:rgba(255,255,255,0.45); font-size:0.72rem; cursor:pointer; font-family:'Noto Sans JP',sans-serif; transition:all 0.25s; }
+.lbtn.on { background:var(--gold); color:var(--black); font-weight:bold; }
+
+.hero { min-height:100vh; background:var(--dark); display:flex; align-items:center; position:relative; overflow:hidden; padding-top:5rem; }
+.hero-bg { position:absolute; inset:0; background:radial-gradient(ellipse 55% 50% at 75% 50%, rgba(201,168,76,0.09) 0%, transparent 65%); }
+.hero-body { position:relative; z-index:2; padding:3rem 4rem; max-width:700px; }
+.eyebrow { font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:0.82rem; letter-spacing:0.35em; text-transform:uppercase; margin-bottom:1.8rem; display:block; }
+.hero-name { font-family:'Cormorant Garamond',serif; color:var(--white); font-size:clamp(2.2rem,4vw,3.8rem); font-weight:300; line-height:1.1; margin-bottom:0.6rem; }
+.hero-title-sub { font-family:'Noto Serif JP',serif; color:var(--gold); font-size:clamp(0.95rem,2vw,1.4rem); font-weight:300; margin-bottom:2rem; display:block; }
+.hero-desc { font-family:'Cormorant Garamond',serif; color:rgba(255,255,255,0.68); font-size:1.05rem; font-style:italic; line-height:2; margin-bottom:1.2rem; max-width:500px; display:block; }
+.hero-loc { color:rgba(255,255,255,0.38); font-size:0.75rem; letter-spacing:0.15em; margin-bottom:2.5rem; display:block; }
+.btn { display:inline-block; padding:0.9rem 2.4rem; border:1px solid var(--gold); color:var(--gold); font-size:0.78rem; letter-spacing:0.2em; text-decoration:none; transition:all 0.35s; }
+.btn:hover { background:var(--gold); color:var(--dark); }
+
+section { padding:6rem 4rem; }
+.slabel { display:block; font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:0.75rem; letter-spacing:0.38em; text-transform:uppercase; margin-bottom:1rem; }
+.stitle { font-family:'Noto Serif JP',serif; font-size:clamp(1.5rem,2.8vw,2.2rem); font-weight:300; color:var(--cream); line-height:1.3; margin-bottom:0.8rem; }
+.sdiv { width:3rem; height:1px; background:var(--gold); margin-bottom:2.5rem; }
+
+.message { background:var(--charcoal); position:relative; overflow:hidden; }
+.message::before { content:'"'; position:absolute; top:-2rem; left:2rem; font-family:'Cormorant Garamond',serif; font-size:16rem; color:rgba(201,168,76,0.05); line-height:1; pointer-events:none; }
+.msg-inner { max-width:880px; margin:0 auto; position:relative; z-index:1; }
+.msg-p { font-family:'Noto Serif JP',serif; font-size:0.97rem; line-height:2.4; color:var(--text-muted); font-weight:300; margin-bottom:1.5rem; display:block; }
+.msg-close { display:block; font-family:'Cormorant Garamond',serif; font-size:1.05rem; font-style:italic; color:var(--gold-light); border-left:2px solid var(--gold); padding-left:1.4rem; line-height:1.9; margin-top:1.8rem; }
+
+.about { background:var(--charcoal); }
+.about-wrap { max-width:1080px; margin:0 auto; display:grid; grid-template-columns:260px 1fr; gap:5rem; align-items:start; }
+.a-left { display:flex; flex-direction:column; align-items:center; gap:1rem; }
+.photo { width:220px; height:220px; position:relative; overflow:hidden; flex-shrink:0; }
+.photo img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; }
+.photo-frame { position:absolute; inset:-5px; border:1px solid rgba(201,168,76,0.3); pointer-events:none; }
+.yrs { width:220px; padding:1.1rem; background:var(--dark); text-align:center; }
+.name-box { width:220px; padding:0.9rem 1rem; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.25); text-align:center; }
+.linkedin-box { width:220px; padding:0.7rem 1rem; background:#0a66c2; text-align:center; transition:background 0.3s; }
+.linkedin-box:hover { background:#0856a8; }
+.linkedin-box a { color:#fff; text-decoration:none; font-size:0.75rem; letter-spacing:0.1em; display:flex; align-items:center; justify-content:center; gap:0.5rem; }
+.linkedin-icon { font-size:0.9rem; font-weight:bold; }
+.name-role { display:block; font-size:0.68rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.3rem; }
+.name-main { display:block; font-family:'Noto Serif JP',serif; font-size:1rem; font-weight:400; color:var(--cream); letter-spacing:0.05em; }
+.yrs-n { font-family:'Cormorant Garamond',serif; font-size:2.6rem; color:var(--gold); font-weight:300; line-height:1; }
+.yrs-l { display:block; font-size:0.62rem; letter-spacing:0.1em; color:var(--text-dim); margin-top:0.4rem; line-height:1.5; }
+.atxt { font-family:'Noto Serif JP',serif; font-size:0.93rem; line-height:2.2; color:var(--text-muted); font-weight:300; margin-bottom:1.6rem; display:block; }
+.hls { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.8rem; }
+.hl { padding:1.1rem 1.3rem; border-left:2px solid var(--gold); background:#252b30; }
+.hl-l { display:block; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); margin-bottom:0.25rem; }
+.hl-v { display:block; font-family:'Noto Serif JP',serif; font-size:0.83rem; color:var(--cream); line-height:1.6; }
+.pgrid-label { display:block; font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:0.72rem; letter-spacing:0.35em; text-transform:uppercase; margin-top:2.2rem; margin-bottom:0.9rem; }
+.pgrid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; }
+.pi { display:flex; gap:0.7rem; padding:0.85rem 1rem; background:#252b30; border:1px solid rgba(201,168,76,0.12); transition:border-color 0.3s; }
+.pi:hover { border-color:var(--gold); }
+.pi-icon { color:var(--gold); font-size:0.6rem; margin-top:0.3rem; flex-shrink:0; }
+.pi-name { display:block; font-family:'Noto Serif JP',serif; font-size:0.82rem; font-weight:600; color:var(--gold-light); margin-bottom:0.1rem; }
+.pi-sub { display:block; font-size:0.68rem; color:rgba(255,255,255,0.42); }
+
+.services { background:var(--dark); }
+.svc-inner { max-width:1080px; margin:0 auto; }
+.sgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; margin-top:0.8rem; }
+.sc { background:var(--charcoal); padding:2.3rem 1.8rem; position:relative; overflow:hidden; transition:background 0.3s; }
+.sc::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--gold); transform:scaleX(0); transition:transform 0.4s; }
+.sc:hover { background:#252b30; }
+.sc:hover::after { transform:scaleX(1); }
+.sc-n { font-family:'Cormorant Garamond',serif; font-size:2.8rem; color:rgba(201,168,76,0.13); font-weight:300; line-height:1; margin-bottom:1.3rem; }
+.sc-t { display:block; font-family:'Noto Serif JP',serif; font-size:0.92rem; font-weight:400; color:var(--gold-light); margin-bottom:0.9rem; }
+.sc-d { display:block; font-size:0.8rem; color:rgba(255,255,255,0.52); line-height:1.9; }
+.tags { margin-top:2.5rem; display:flex; flex-wrap:wrap; gap:0.7rem; }
+.tag { padding:0.35rem 0.9rem; border:1px solid rgba(201,168,76,0.28); color:rgba(255,255,255,0.48); font-size:0.7rem; }
+
+.activities { background:var(--charcoal); }
+.act-inner { max-width:1080px; margin:0 auto; }
+.act-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:2px; margin-top:1rem; max-width:740px; }
+.act-card { background:#252b30; padding:2rem 1.8rem; position:relative; overflow:hidden; transition:background 0.3s; }
+.act-card:hover { background:#2d3540; }
+.act-thumb { width:100%; aspect-ratio:16/9; background:var(--dark); margin-bottom:1.3rem; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.act-thumb img { width:100%; height:100%; object-fit:cover; }
+.act-thumb-placeholder { width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#1a2030,#2a3545); }
+.play-icon { width:48px; height:48px; border-radius:50%; border:2px solid rgba(201,168,76,0.6); display:flex; align-items:center; justify-content:center; }
+.play-icon::after { content:"▶"; color:var(--gold); font-size:1rem; margin-left:3px; }
+.act-event { display:block; font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:0.72rem; letter-spacing:0.25em; text-transform:uppercase; margin-bottom:0.5rem; }
+.act-title { display:block; font-family:'Noto Serif JP',serif; font-size:0.95rem; font-weight:400; color:var(--cream); margin-bottom:0.8rem; line-height:1.5; }
+.act-link { display:inline-flex; align-items:center; gap:0.4rem; color:var(--gold); font-size:0.75rem; letter-spacing:0.1em; text-decoration:none; border-bottom:1px solid rgba(201,168,76,0.3); padding-bottom:2px; transition:border-color 0.3s; }
+.act-link:hover { border-color:var(--gold); }
+.contact { background:#f5f0e8; }
+.contact .stitle { color:var(--charcoal); }
+.contact .slabel { color:var(--gold); }
+.ci { max-width:780px; margin:0 auto; }
+.cintro { display:block; font-family:'Noto Serif JP',serif; font-size:0.93rem; line-height:2.2; color:#666; font-weight:300; margin-bottom:2.5rem; }
+.cform { display:grid; gap:1.4rem; }
+.frow { display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; }
+.fg { display:flex; flex-direction:column; gap:0.4rem; }
+.fg label { font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#888; }
+.fg input, .fg select, .fg textarea { padding:0.85rem 1rem; border:1px solid #ddd; border-bottom:2px solid #ddd; background:#fff; font-family:'Noto Sans JP',sans-serif; font-size:0.85rem; color:#333; outline:none; transition:border-color 0.3s; appearance:none; }
+.fg input:focus, .fg select:focus, .fg textarea:focus { border-bottom-color:var(--gold); }
+.fg textarea { resize:vertical; min-height:130px; }
+.fsub { display:flex; align-items:center; gap:2rem; margin-top:0.8rem; }
+.sbtn { padding:0.9rem 2.8rem; background:var(--dark); color:var(--gold); border:none; font-family:'Noto Sans JP',sans-serif; font-size:0.78rem; letter-spacing:0.2em; cursor:pointer; transition:all 0.3s; }
+.sbtn:hover { background:var(--gold); color:var(--dark); }
+.fnote { font-size:0.73rem; color:#999; }
+
+footer { background:var(--black); padding:2.5rem 4rem; display:flex; align-items:center; justify-content:space-between; }
+.fb { font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:0.95rem; letter-spacing:0.15em; }
+.fc { color:rgba(255,255,255,0.28); font-size:0.7rem; }
+.fl { color:rgba(255,255,255,0.28); font-size:0.7rem; text-align:right; }
+
+@media(max-width:900px){
+  nav { padding:1rem 1.5rem; }
+  .nav-links { display:none; }
+  section { padding:4rem 1.5rem; }
+  .about-wrap { grid-template-columns:1fr; gap:2.5rem; }
+  .sgrid { grid-template-columns:1fr; }
+  .frow { grid-template-columns:1fr; }
+  footer { flex-direction:column; gap:1rem; text-align:center; }
+  .hero-body { padding:2rem 1.5rem; }
+  .hero-line { display:none; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">LINER NOTES CONSULTING</a>
+  <div class="nav-right">
+    <ul class="nav-links">
+      <li><a href="#about"  id="nl-about">概要</a></li>
+      <li><a href="#services" id="nl-svc">サービス</a></li>
+      <li><a href="#activities" id="nl-act">活動例</a></li><li><a href="#contact" id="nl-con">お問い合わせ</a></li>
+    </ul>
+    <div class="lang-sw">
+      <button class="lbtn on" id="bjp" onclick="setLang('jp')">JP</button>
+      <button class="lbtn"    id="ben" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-line"></div>
+  <div class="hero-body">
+    <span class="eyebrow">Executive Consultant</span>
+    <h1 class="hero-name" id="h-name">前田 康夫</h1>
+    <span class="hero-title-sub" id="h-sub">ライナーノーツコンサルティング 代表</span>
+    <span class="hero-desc" id="h-desc">映像制作ソリューションのスペシャリスト。映像業界の深い知識と英語力を活かし、調査・報告・交渉を一貫してサポートします。</span>
+    <span class="hero-loc">📍 <span id="h-loc">大阪, 日本</span></span>
+    <a href="#contact" class="btn" id="h-btn">お問い合わせ</a>
+  </div>
+</section>
+
+<section class="message">
+  <div class="msg-inner">
+    <span class="slabel">Message</span>
+    <h2 class="stitle" id="msg-title">映像制作の４０年と、これからの時代へ</h2>
+    <div class="sdiv"></div>
+    <span class="msg-p" id="msg-p1">映像制作は1980年代から大きな変革を遂げました。フィルムから磁気ベースのVTRやカメラへ、そしてフラッシュメモリーをストレージにしたカメラ・サーバー・編集システムが当たり前になり、ソリューションによってはこの30年でその価格は100分の1にまで下がりました。</span>
+    <span class="msg-p" id="msg-p2">クラウドへ移行するソリューションが主流となり、映像フォーマットは高圧縮しても画質が維持されるようになり、クラウドを越えたグローバルネットワークも実現しました。そして今、生成AIをはじめとしたAIの機能が映像制作ソリューションの新たな時代を切り拓こうとしています。</span>
+    <span class="msg-close" id="msg-close">この30年間、映像技術のイノベーションに伴奏してきた当社のコンサルタントが、新たな映像ソリューションによるOMO・DCXの実現に貢献します。</span>
+  </div>
+</section>
+
+<section class="about" id="about">
+  <div class="about-wrap">
+    <div class="a-left">
+      <div class="photo">
+        <img src="data:image/jpeg;base64,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" alt="Yasuo Maeda">
+        <div class="photo-frame"></div>
+      </div>
+      <div class="name-box">
+        <span class="name-role" id="name-role">代表</span>
+        <span class="name-main" id="name-main">前田 康夫</span>
+      </div>
+      <div class="linkedin-box">
+        <a href="https://www.linkedin.com/in/ymaeda/" target="_blank">
+          <span class="linkedin-icon">in</span> LinkedIn
+        </a>
+      </div>
+      <div class="yrs">
+        <div class="yrs-n">30<span style="font-size:1.1rem">+</span></div>
+        <span class="yrs-l" id="yrs-l">年間の業界経験 — パナソニック</span>
+      </div>
+    </div>
+    <div>
+      <span class="slabel">About</span>
+      <h2 class="stitle" id="a-title">エグゼクティブ コンサルタント</h2>
+      <div class="sdiv"></div>
+      <span class="atxt" id="a-p1">パナソニックのグローバルプロダクトマネージャーとして30年以上、放送・シネマ業界の最前線で活躍。ロンドン五輪IBC（国際放送センター）でのスタジオソリューション設計から、西欧における高品位シネマワークフローの導入まで、映像制作の幅広い領域に精通しています。</span>
+      <span class="atxt" id="a-p2">現在は映像業界の深い専門知識と長年培った英語力・ネットワークを活かし、国内外の企業に対して市場調査・英語での交渉代行・ビジネスレポーティングを提供しています。スイス・ポーランドのIrix Lensの日本市場参入アドバイザーも務めています。</span>
+      <div class="hls">
+        <div class="hl"><span class="hl-l" id="hl1l">専門領域</span><span class="hl-v" id="hl1v">映像制作・放送・シネマ業界</span></div>
+        <div class="hl"><span class="hl-l" id="hl2l">対応エリア</span><span class="hl-v" id="hl2v">大阪・京都・兵庫（関西全域）</span></div>
+        <div class="hl"><span class="hl-l" id="hl3l">現在のプロジェクト</span><span class="hl-v" id="hl3v">Irix Lens 日本市場参入支援</span></div>
+        <div class="hl"><span class="hl-l" id="hl4l">言語対応</span><span class="hl-v" id="hl4v">日本語・英語（通訳・交渉）</span></div>
+      </div>
+      <span class="pgrid-label" id="prod-label">パナソニック時代の担当製品</span>
+      <div class="pgrid">
+        <div class="pi"><span class="pi-icon">▸</span><div><span class="pi-name">KAIROS</span><span class="pi-sub" id="ps1">2110/IPMX対応 IPビデオスイッチャー</span></div></div>
+        <div class="pi"><span class="pi-icon">▸</span><div><span class="pi-name">VARICAM</span><span class="pi-sub" id="ps2">高品位シネマカメラ</span></div></div>
+        <div class="pi"><span class="pi-icon">▸</span><div><span class="pi-name" id="ps3n">ビデオサーバー</span><span class="pi-sub" id="ps3">放送向け収録・再生システム</span></div></div>
+        <div class="pi"><span class="pi-icon">▸</span><div><span class="pi-name" id="ps4n">アーカイブシステム</span><span class="pi-sub" id="ps4">長期保存・資産管理</span></div></div>
+        <div class="pi"><span class="pi-icon">▸</span><div><span class="pi-name" id="ps5n">コンテンツマネージメントシステム</span><span class="pi-sub" id="ps5">放送・制作向けCMS</span></div></div>
+        <div class="pi"><span class="pi-icon">▸</span><div><span class="pi-name">Quick Cutter</span><span class="pi-sub" id="ps6">ノンリニア編集システム</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="services" id="services">
+  <div class="svc-inner">
+    <span class="slabel">Services</span>
+    <h2 class="stitle" id="svc-title">提供サービス</h2>
+    <div class="sdiv"></div>
+    <div class="sgrid">
+      <div class="sc"><div class="sc-n">01</div><span class="sc-t" id="s1t">翻訳・通訳・市場リサーチ</span><span class="sc-d" id="s1d">映像業界の専門用語を正確に理解した上で、英語での翻訳・通訳・市場調査・競合分析を実施。日本語でわかりやすくレポーティングします。</span></div>
+      <div class="sc"><div class="sc-n">02</div><span class="sc-t" id="s2t">英語交渉・ビジネス代行</span><span class="sc-d" id="s2d">海外メーカーや海外パートナーとの交渉・商談を英語で代行。映像業界の商慣習・技術背景を踏まえた実践的なコミュニケーションを提供します。</span></div>
+      <div class="sc"><div class="sc-n">03</div><span class="sc-t" id="s3t">日本市場参入支援</span><span class="sc-d" id="s3d">海外映像関連ブランドの日本市場への参入を総合的にサポート。技術仕様のローカライズから販促活動の管理まで、エンドツーエンドで対応します。</span></div>
+      <div class="sc"><div class="sc-n">04</div><span class="sc-t" id="s4t">通訳・アテンドサービス</span><span class="sc-d" id="s4d">映像業界の専門知識を持つ通訳として商談・技術視察に同行。大阪・京都・兵庫エリアを中心に、VIPアテンドにも対応します。</span></div>
+      <div class="sc"><div class="sc-n">05</div><span class="sc-t" id="s5t">ブランド・マーケティング・D2C支援</span><span class="sc-d" id="s5d">マーケットリサーチ、PR、ブランドコンサルティング、トレードショー出展支援に加え、D2C戦略の立案・実行支援、ホームページ制作まで、映像関連ビジネスの販売促進を幅広くサポートします。</span></div>
+      <div class="sc"><div class="sc-n">06</div><span class="sc-t" id="s6t">映像制作・ライブ配信</span><span class="sc-d" id="s6d">国内の豊富なプロフェッショナル制作パートナーネットワークを通じた映像制作・ライブ配信サービス。編集・ソフトウェアテストにも対応します。</span></div>
+    </div>
+    <div class="tags" id="tags-jp">
+      <span class="tag">翻訳・通訳</span><span class="tag">英語交渉代行</span><span class="tag">マーケットリサーチ</span>
+      <span class="tag">パブリックリレーションズ</span><span class="tag">ビジネスコンサルティング</span><span class="tag">トレーニング</span>
+      <span class="tag">ブランドコンサルティング</span><span class="tag">D2C戦略支援</span><span class="tag">ホームページ制作</span><span class="tag">トレードショー出展支援</span><span class="tag">ソフトウェアテスト</span>
+      <span class="tag">通訳・アテンド</span><span class="tag">映像制作・ライブ配信</span>
+    </div>
+    <div class="tags" id="tags-en" style="display:none">
+      <span class="tag">Translation & Interpretation</span><span class="tag">English Negotiation</span><span class="tag">Market Research</span>
+      <span class="tag">Public Relations</span><span class="tag">Business Consulting</span><span class="tag">Training</span>
+      <span class="tag">Brand Consulting</span><span class="tag">D2C Strategy</span><span class="tag">Website Creation</span><span class="tag">Trade Show Support</span><span class="tag">Software Testing</span>
+      <span class="tag">Interpretation & Escort</span><span class="tag">Video Production</span>
+    </div>
+  </div>
+</section>
+
+
+<section class="activities" id="activities">
+  <div class="act-inner">
+    <span class="slabel">Activities</span>
+    <h2 class="stitle" id="act-title">活動例</h2>
+    <div class="sdiv"></div>
+    <div class="act-grid">
+
+<div class="act-card">
+        <div class="act-thumb">
+          <img src="https://img.youtube.com/vi/_jZwY0Zq5E0/hqdefault.jpg" alt="InterBee Online 2020" onerror="this.parentElement.innerHTML='<div class='act-thumb-placeholder'><div class='play-icon'></div></div>'" />
+        </div>
+        <span class="act-event">InterBee Online 2020</span>
+        <span class="act-title" id="act2-title">InterBee Online 2020 プレゼンテーション</span>
+        <a href="https://www.youtube.com/watch?v=_jZwY0Zq5E0" target="_blank" class="act-link">▶ YouTubeで見る</a>
+      </div>
+
+      <div class="act-card">
+        <div class="act-thumb">
+          <img src="https://img.youtube.com/vi/FTuxC8HcceE/hqdefault.jpg" alt="ウェブマガジン" onerror="this.parentElement.innerHTML='<div class='act-thumb-placeholder'><div class='play-icon'></div></div>'" />
+        </div>
+        <span class="act-event" id="act3-event">ウェブマガジン</span>
+        <span class="act-title" id="act3-title">ウェブマガジンでのアピール・プレゼンテーション</span>
+        <a href="https://www.youtube.com/watch?v=FTuxC8HcceE" target="_blank" class="act-link">▶ YouTubeで見る</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="ci">
+    <span class="slabel">Contact</span>
+    <h2 class="stitle" id="c-title">お問い合わせ</h2>
+    <div class="sdiv"></div>
+    <span class="cintro" id="c-intro">英語調査・交渉代行、市場参入支援、通訳・アテンドサービスなど、お気軽にご相談ください。大阪を拠点として国内外のご要望に対応いたします。</span>
+    <div style="margin-bottom:2rem; padding:1.2rem 1.5rem; background:#fff; border-left:2px solid #c9a84c; display:flex; align-items:center; gap:1rem;">
+  <span style="color:#c9a84c; font-size:1.2rem;">✉</span>
+  <div>
+    <div style="font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#999; margin-bottom:0.2rem;" id="email-label">メールでのお問い合わせ</div>
+    <a href="/cdn-cgi/l/email-protection#b8d2d9c2c28f898e8d8df8dfd5d9d1d496dbd7d5" style="color:#1e2428; font-size:0.95rem; text-decoration:none; font-family:'Noto Serif JP',serif; font-weight:400;"><span class="__cf_email__" data-cfemail="d3b9b2a9a9e4e2e5e6e693b4beb2babffdb0bcbe">[email&#160;protected]</span></a>
+  </div>
+</div>
+<form class="cform" action="https://formspree.io/f/xqedwwpj" method="POST">
+  <input type="hidden" name="_replyto" value="jazz71655@gmail.com">
+  <input type="hidden" name="_subject" value="ライナーノーツコンサルティング お問い合わせ">
+      <div class="frow">
+        <div class="fg"><label id="fl-name">お名前 *</label><input type="text" name="name" required></div>
+        <div class="fg"><label id="fl-co">会社名</label><input type="text" name="company"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label id="fl-email">メールアドレス *</label><input type="email" name="email" required></div>
+        <div class="fg"><label id="fl-type">お問い合わせ種別</label><select id="c-sel" name="inquiry"></select></div>
+      </div>
+      <div class="fg"><label id="fl-msg">メッセージ *</label><textarea name="message" required></textarea></div>
+      <div class="fsub">
+        <button type="submit" class="sbtn" id="c-btn">送 信</button>
+        <p class="fnote" id="c-note">通常2営業日以内にご返信いたします。</p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="fb">LINER NOTES CONSULTING</div>
+  <div class="fc">© 2025 Liner Notes Consulting. All rights reserved.</div>
+  <div class="fl" id="f-loc">大阪, 日本 — 前田 康夫</div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+var L = {
+  jp: {
+    navAbout:'概要', navSvc:'サービス', navCon:'お問い合わせ',
+    hName:'前田 康夫', hSub:'ライナーノーツコンサルティング 代表',
+    hDesc:'映像制作ソリューションのスペシャリスト。映像業界の深い知識と英語力を活かし、調査・報告・交渉を一貫してサポートします。',
+    hLoc:'大阪, 日本', hBtn:'お問い合わせ',
+    msgTitle:'映像制作の４０年と、これからの時代へ',
+    msgP1:'映像制作は1980年代から大きな変革を遂げました。フィルムから磁気ベースのVTRやカメラへ、そしてフラッシュメモリーをストレージにしたカメラ・サーバー・編集システムが当たり前になり、ソリューションによってはこの30年でその価格は100分の1にまで下がりました。',
+    msgP2:'クラウドへ移行するソリューションが主流となり、映像フォーマットは高圧縮しても画質が維持されるようになり、クラウドを越えたグローバルネットワークも実現しました。そして今、生成AIをはじめとしたAIの機能が映像制作ソリューションの新たな時代を切り拓こうとしています。',
+    msgClose:'この30年間、映像技術のイノベーションに伴奏してきた当社のコンサルタントが、新たな映像ソリューションによるOMO・DCXの実現に貢献します。',
+    yrsL:'年間の業界経験 — パナソニック',
+    aTitle:'エグゼクティブ コンサルタント',
+    aP1:'パナソニックのグローバルプロダクトマネージャーとして30年以上、放送・シネマ業界の最前線で活躍。ロンドン五輪IBC（国際放送センター）でのスタジオソリューション設計から、西欧における高品位シネマワークフローの導入まで、映像制作の幅広い領域に精通しています。',
+    aP2:'現在は映像業界の深い専門知識と長年培った英語力・ネットワークを活かし、国内外の企業に対して市場調査・英語での交渉代行・ビジネスレポーティングを提供しています。スイス・ポーランドのIrix Lensの日本市場参入アドバイザーも務めています。',
+    hl1l:'専門領域', hl1v:'映像制作・放送・シネマ業界',
+    hl2l:'対応エリア', hl2v:'大阪・京都・兵庫（関西全域）',
+    hl3l:'現在のプロジェクト', hl3v:'Irix Lens 日本市場参入支援',
+    hl4l:'言語対応', hl4v:'日本語・英語（通訳・交渉）',
+    prodLabel:'パナソニック時代の担当製品',
+    ps1:'2110/IPMX対応 IPビデオスイッチャー', ps2:'高品位シネマカメラ',
+    ps3n:'ビデオサーバー', ps3:'放送向け収録・再生システム',
+    ps4n:'アーカイブシステム', ps4:'長期保存・資産管理',
+    ps5n:'コンテンツマネージメントシステム', ps5:'放送・制作向けCMS', ps6:'ノンリニア編集システム',
+    svcTitle:'提供サービス',
+    s1t:'翻訳・通訳・市場リサーチ', s1d:'映像業界の専門用語を正確に理解した上で、英語での翻訳・通訳・市場調査・競合分析を実施。日本語でわかりやすくレポーティングします。',
+    s2t:'英語交渉・ビジネス代行', s2d:'海外メーカーや海外パートナーとの交渉・商談を英語で代行。映像業界の商慣習・技術背景を踏まえた実践的なコミュニケーションを提供します。',
+    s3t:'日本市場参入支援', s3d:'海外映像関連ブランドの日本市場への参入を総合的にサポート。技術仕様のローカライズから販促活動の管理まで、エンドツーエンドで対応します。',
+    s4t:'通訳・アテンドサービス', s4d:'映像業界の専門知識を持つ通訳として商談・技術視察に同行。大阪・京都・兵庫エリアを中心に、VIPアテンドにも対応します。',
+    s5t:'ブランド・マーケティング・D2C支援', s5d:'マーケットリサーチ、PR、ブランドコンサルティング、トレードショー出展支援に加え、D2C戦略の立案・実行支援、ホームページ制作まで、映像関連ビジネスの販売促進を幅広くサポートします。',
+    s6t:'映像制作・ライブ配信', s6d:'国内の豊富なプロフェッショナル制作パートナーネットワークを通じた映像制作・ライブ配信サービス。編集・ソフトウェアテストにも対応します。',
+    cTitle:'お問い合わせ', emailLabel:'メールでのお問い合わせ', cIntro:'英語調査・交渉代行、市場参入支援、通訳・アテンドサービスなど、お気軽にご相談ください。大阪を拠点として国内外のご要望に対応いたします。',
+    flName:'お名前 *', flCo:'会社名', flEmail:'メールアドレス *', flType:'お問い合わせ種別', flMsg:'メッセージ *',
+    cBtn:'送 信', cNote:'通常2営業日以内にご返信いたします。',
+    selOpts:['','翻訳・通訳・市場リサーチ','英語交渉代行','日本市場参入支援','通訳・アテンドサービス','ブランド・マーケティング・D2C支援','映像制作・ライブ配信','その他'],
+    fLoc:'大阪, 日本 — 前田 康夫', nameRole:'代表', nameName:'前田 康夫', actTitle:'活動例', act2Title:'InterBee Online 2020 プレゼンテーション', act3Event:'ウェブマガジン', act3Title:'ウェブマガジンでのアピール・プレゼンテーション', nlAct:'活動例'
+  },
+  en: {
+    navAbout:'About', navSvc:'Services', navCon:'Contact',
+    hName:'Yasuo Maeda', hSub:'CEO, Liner Notes Consulting',
+    hDesc:'Specialist in video production solutions. Leveraging deep industry knowledge and fluent English to provide end-to-end research, reporting, and negotiation support.',
+    hLoc:'Osaka, Japan', hBtn:'Get in Touch',
+    msgTitle:'40 Years of Video Innovation — and What Comes Next',
+    msgP1:"Video production has undergone a dramatic transformation since the 1980s. From film to magnetic-based VTRs and cameras, then to flash memory-based cameras, servers, and editing systems — the cost of some solutions has dropped to one-hundredth over the past 30 years.",
+    msgP2:"Cloud-based solutions have become mainstream, video formats now maintain quality even under heavy compression, and global networks spanning cloud infrastructure are now reality. Now, AI — led by generative AI — is opening a brand new era for video production.",
+    msgClose:"Having accompanied video technology innovation for over 30 years, our consultant is ready to help realize your next-generation OMO and DCX vision.",
+    yrsL:'Years Industry Experience — Panasonic',
+    aTitle:'Executive Consultant',
+    aP1:"With over 30 years as a global product manager at Panasonic, Yasuo Maeda has been at the forefront of the broadcast and cinema industry. From designing studio solutions at the London Olympics IBC to launching high-end cinema workflows across Western Europe, he brings deep expertise across the full spectrum of video production.",
+    aP2:"Today he leverages deep industry knowledge, fluent English, and an extensive professional network to provide market research, English-language negotiation, and business reporting. He currently serves as Japan Market Entry Advisor for Irix Lens (Switzerland/Poland).",
+    hl1l:'Expertise', hl1v:'Video, Broadcast & Cinema',
+    hl2l:'Base', hl2v:'Osaka / Kyoto / Kansai',
+    hl3l:'Current Project', hl3v:'Irix Lens Japan Market Entry',
+    hl4l:'Languages', hl4v:'Japanese & English',
+    prodLabel:'Products Managed at Panasonic',
+    ps1:'2110/IPMX IP Video Switcher', ps2:'High-End Cinema Camera',
+    ps3n:'Video Server', ps3:'Broadcast Recording & Playback',
+    ps4n:'Archive System', ps4:'Long-term Storage & Asset Mgmt',
+    ps5n:'Content Management System', ps5:'Broadcast & Production CMS', ps6:'Non-Linear Editing System',
+    svcTitle:'What We Offer',
+    s1t:'Translation, Interpretation & Market Research', s1d:'Translation, interpretation, and market research in English with precise understanding of video industry terminology — reported back clearly in Japanese.',
+    s2t:'English Negotiation & Representation', s2d:'Representing clients in negotiations with overseas manufacturers and partners. Practical, industry-informed communication grounded in video business customs.',
+    s3t:'Japan Market Entry Support', s3d:'Comprehensive support for international video brands entering Japan — from localizing technical specs to managing end-to-end promotional activities.',
+    s4t:'Interpretation & Escort Services', s4d:'Accompanying clients to business meetings and technical site visits as a specialist interpreter. VIP escort available in Osaka, Kyoto, and Hyogo.',
+    s5t:'Brand, Marketing & D2C Support', s5d:'Supporting video-related businesses with market research, PR, brand consulting, trade show participation, D2C strategy planning, and website creation — the full scope of sales promotion.',
+    s6t:'Video Production & Live Streaming', s6d:'Video production and live streaming through an extensive network of professional partners in Japan. Editing and software testing also available.',
+    cTitle:'Get in Touch', emailLabel:'Email us directly', cIntro:'Whether you need English research, negotiation support, Japan market entry assistance, or interpretation — feel free to reach out. Based in Osaka, available worldwide.',
+    flName:'Name *', flCo:'Company', flEmail:'Email *', flType:'Inquiry Type', flMsg:'Message *',
+    cBtn:'Send', cNote:'We will reply within 2 business days.',
+    selOpts:['','Translation, Interpretation & Market Research','English Negotiation','Japan Market Entry','Interpretation & Escort Services','Brand, Marketing & D2C Support','Video Production & Live Streaming','Other'],
+    fLoc:'Osaka, Japan — Yasuo Maeda', nameRole:'CEO', nameName:'Yasuo Maeda', actTitle:'Activities', act2Title:'InterBee Online 2020 Presentation', act3Event:'Web Magazine', act3Title:'Web Magazine Feature & Presentation', nlAct:'Activities'
+  }
+};
+
+function setLang(lang) {
+  var t = L[lang];
+  var ids = ['navAbout','navSvc','navCon','hName','hSub','hDesc','hLoc','hBtn',
+    'msgTitle','msgP1','msgP2','msgClose','yrsL','aTitle','aP1','aP2',
+    'hl1l','hl1v','hl2l','hl2v','hl3l','hl3v','hl4l','hl4v','prodLabel','nameRole','nameName',
+    'ps1','ps2','ps3n','ps3','ps4n','ps4','ps5n','ps5','ps6',
+    'svcTitle','s1t','s1d','s2t','s2d','s3t','s3d','s4t','s4d','s5t','s5d','s6t','s6d',
+    'cTitle','emailLabel','cIntro','flName','flCo','flEmail','flType','flMsg','cBtn','cNote','fLoc','actTitle','act2Title','act3Event','act3Title','nlAct'];
+  var domIds = ['nl-about','nl-svc','nl-con','h-name','h-sub','h-desc','h-loc','h-btn',
+    'msg-title','msg-p1','msg-p2','msg-close','yrs-l','a-title','a-p1','a-p2',
+    'hl1l','hl1v','hl2l','hl2v','hl3l','hl3v','hl4l','hl4v','prod-label','name-role','name-main',
+    'ps1','ps2','ps3n','ps3','ps4n','ps4','ps5n','ps5','ps6',
+    'svc-title','s1t','s1d','s2t','s2d','s3t','s3d','s4t','s4d','s5t','s5d','s6t','s6d',
+    'c-title','email-label','c-intro','fl-name','fl-co','fl-email','fl-type','fl-msg','c-btn','c-note','f-loc','act-title','act2-title','act3-event','act3-title','nl-act'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(domIds[i]);
+    if(el) el.textContent = t[ids[i]];
+  }
+  // select options
+  var sel=document.getElementById('c-sel');
+  sel.innerHTML='';
+  t.selOpts.forEach(function(v){var o=document.createElement('option');o.textContent=v;sel.appendChild(o);});
+  // tags
+  document.getElementById('tags-jp').style.display = lang==='jp' ? '' : 'none';
+  document.getElementById('tags-en').style.display = lang==='en' ? '' : 'none';
+  // buttons
+  document.getElementById('bjp').className = 'lbtn' + (lang==='jp' ? ' on' : '');
+  document.getElementById('ben').className = 'lbtn' + (lang==='en' ? ' on' : '');
+}
+</script>
+</body>
+</html>
