@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIは「見えない領域」で何を変えているのか — Liner Notes Consulting</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Noto+Serif+JP:wght@300;400;600&family=Noto+Sans+JP:wght@300;400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:      #0a0a0a;
+  --dark:       #111418;
+  --gold:       #c9a84c;
+  --gold-light: #e8c97a;
+  --cream:      #f5f0e8;
+  --white:      #ffffff;
+  --mag-bg:     #0e0e13;
+  --mag-surface:#16161f;
+  --mag-border: rgba(130,140,210,0.15);
+  --mag-text:   rgba(210,212,230,0.82);
+  --mag-text-dim:rgba(210,212,230,0.48);
+  --blue:       #7a8fd4;
+  --blue-light: #a8b4e8;
+  --blue-dim:   rgba(122,143,212,0.15);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { font-family:'Noto Sans JP',sans-serif; background:var(--mag-bg); color:var(--white); overflow-x:hidden; }
+
+/* ── NAV ── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.1rem 4rem;
+  background:rgba(10,10,16,0.97);
+  border-bottom:1px solid rgba(122,143,212,0.2);
+}
+.nav-logo { font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:1rem; letter-spacing:0.15em; text-decoration:none; }
+.nav-right { display:flex; align-items:center; gap:2rem; }
+.nav-back { display:flex; align-items:center; gap:0.5rem; color:rgba(255,255,255,0.45); font-size:0.72rem; letter-spacing:0.12em; text-decoration:none; transition:color 0.3s; }
+.nav-back:hover { color:var(--gold); }
+.nav-back::before { content:'←'; font-size:0.85rem; }
+.lang-sw { display:flex; border:1px solid rgba(201,168,76,0.5); overflow:hidden; border-radius:2px; }
+.lbtn { padding:0.3rem 0.85rem; background:transparent; border:none; color:rgba(255,255,255,0.45); font-size:0.72rem; cursor:pointer; font-family:'Noto Sans JP',sans-serif; transition:all 0.25s; }
+.lbtn.on { background:var(--gold); color:var(--black); font-weight:bold; }
+
+/* ── HERO ── */
+.article-hero {
+  min-height:54vh;
+  background:linear-gradient(160deg, #0a0a14 0%, #0e1020 50%, #111418 100%);
+  display:flex; align-items:flex-end;
+  padding:8rem 4rem 4rem;
+  position:relative; overflow:hidden;
+  border-bottom:1px solid var(--mag-border);
+}
+.article-hero::before {
+  content:'';
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse 55% 55% at 75% 35%, rgba(122,143,212,0.08) 0%, transparent 70%);
+}
+.hero-inner { position:relative; z-index:2; max-width:860px; }
+.mag-label { display:inline-flex; align-items:center; gap:0.7rem; font-family:'Space Mono',monospace; font-size:0.65rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--blue); margin-bottom:1.4rem; }
+.mag-label::before { content:''; display:inline-block; width:2rem; height:1px; background:var(--blue); }
+.article-vol { font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.25em; color:rgba(122,143,212,0.5); text-transform:uppercase; display:block; margin-bottom:0.8rem; }
+.article-title-ja { font-family:'Noto Serif JP',serif; font-size:clamp(1.5rem,3.5vw,2.4rem); font-weight:300; color:var(--cream); line-height:1.45; margin-bottom:0.5rem; }
+.article-title-en { font-family:'Cormorant Garamond',serif; font-size:clamp(1.2rem,2.5vw,1.9rem); font-weight:300; color:var(--cream); line-height:1.35; margin-bottom:0.5rem; }
+.article-sub { font-family:'Noto Serif JP',serif; font-size:0.9rem; color:rgba(210,212,230,0.5); line-height:1.7; margin-bottom:1.8rem; font-weight:300; }
+.article-sub-en { font-family:'Cormorant Garamond',serif; font-size:1rem; color:rgba(210,212,230,0.5); line-height:1.7; margin-bottom:1.8rem; font-style:italic; }
+.article-meta { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
+.meta-tag { font-family:'Space Mono',monospace; font-size:0.58rem; letter-spacing:0.15em; padding:0.25rem 0.7rem; border:1px solid rgba(122,143,212,0.3); color:rgba(122,143,212,0.6); text-transform:uppercase; }
+.meta-date { font-family:'Space Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; color:rgba(210,212,230,0.3); }
+
+/* ── ARTICLE BODY ── */
+.article-wrap { max-width:780px; margin:0 auto; padding:5rem 4rem 6rem; }
+
+/* Lead */
+.article-lead { border-left:3px solid var(--blue); padding:1.5rem 1.8rem; background:rgba(122,143,212,0.05); margin-bottom:3.5rem; }
+.article-lead p { font-family:'Noto Serif JP',serif; font-size:1.0rem; line-height:2.2; color:rgba(210,212,230,0.85); font-weight:300; }
+.article-lead p.en { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-style:italic; line-height:1.9; }
+
+/* Layer diagram */
+.layer-diagram { background:var(--mag-surface); border:1px solid var(--mag-border); padding:2rem 2.2rem; margin:2.5rem 0; }
+.layer-label { font-family:'Space Mono',monospace; font-size:0.58rem; letter-spacing:0.25em; color:rgba(122,143,212,0.5); text-transform:uppercase; display:block; margin-bottom:1.4rem; padding-bottom:0.7rem; border-bottom:1px solid rgba(122,143,212,0.1); }
+.layer-stack { display:flex; flex-direction:column; gap:2px; }
+.layer-item { display:flex; align-items:center; gap:1rem; padding:0.75rem 1rem; }
+.layer-item--visible { background:rgba(122,143,212,0.08); border:1px solid rgba(122,143,212,0.12); }
+.layer-item--invisible { background:rgba(90,110,190,0.13); border:1px solid rgba(122,143,212,0.22); }
+.layer-item--invisible .layer-icon { color:var(--blue-light); }
+.layer-arrow { text-align:center; color:rgba(122,143,212,0.3); font-size:0.8rem; padding:0.1rem 0; }
+.layer-icon { font-family:'Space Mono',monospace; font-size:0.62rem; color:rgba(122,143,212,0.55); flex-shrink:0; min-width:5rem; letter-spacing:0.08em; }
+.layer-text { font-family:'Noto Serif JP',serif; font-size:0.82rem; color:rgba(210,212,230,0.65); line-height:1.5; }
+.layer-text.en { font-family:'Cormorant Garamond',serif; font-size:0.92rem; }
+.invisible-badge { font-family:'Space Mono',monospace; font-size:0.55rem; letter-spacing:0.12em; text-transform:uppercase; background:rgba(122,143,212,0.15); color:var(--blue-light); padding:0.15rem 0.5rem; margin-left:auto; flex-shrink:0; }
+
+/* Section heading */
+.section-num { font-family:'Space Mono',monospace; font-size:0.6rem; letter-spacing:0.2em; color:rgba(122,143,212,0.4); display:block; margin-bottom:0.5rem; text-transform:uppercase; }
+.section-heading { font-family:'Noto Serif JP',serif; font-size:1.15rem; font-weight:400; color:var(--blue-light); line-height:1.5; margin-bottom:1.4rem; padding-bottom:0.7rem; border-bottom:1px solid rgba(122,143,212,0.12); }
+.section-heading.en { font-family:'Cormorant Garamond',serif; font-size:1.35rem; font-style:italic; }
+.article-section { margin-bottom:3.5rem; }
+
+/* Body copy */
+.body-p { font-family:'Noto Serif JP',serif; font-size:0.93rem; line-height:2.4; color:var(--mag-text); font-weight:300; margin-bottom:1.4rem; }
+.body-p.en { font-family:'Cormorant Garamond',serif; font-size:1.05rem; line-height:2.0; }
+
+/* Insight box */
+.insight-box { display:flex; align-items:flex-start; gap:1rem; padding:1.2rem 1.4rem; background:rgba(122,143,212,0.06); border:1px solid rgba(122,143,212,0.18); margin:2rem 0; }
+.insight-icon { font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--blue); letter-spacing:0.1em; flex-shrink:0; padding-top:0.2rem; text-transform:uppercase; }
+.insight-text { font-family:'Noto Serif JP',serif; font-size:0.87rem; line-height:2.0; color:rgba(210,212,230,0.75); font-weight:300; }
+.insight-text.en { font-family:'Cormorant Garamond',serif; font-size:1rem; line-height:1.85; }
+
+/* Process grid */
+.process-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:2px; margin:1.5rem 0 2rem; }
+.proc-item { background:var(--mag-surface); border:1px solid var(--mag-border); border-top:2px solid var(--blue); padding:1.2rem 1rem; }
+.proc-num { font-family:'Space Mono',monospace; font-size:0.6rem; color:rgba(122,143,212,0.4); letter-spacing:0.2em; margin-bottom:0.4rem; }
+.proc-title { font-family:'Space Mono',monospace; font-size:0.68rem; color:var(--blue-light); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem; }
+.proc-desc { font-family:'Noto Serif JP',serif; font-size:0.78rem; line-height:1.8; color:rgba(210,212,230,0.55); }
+.proc-desc.en { font-family:'Cormorant Garamond',serif; font-size:0.88rem; }
+
+/* Challenge list */
+.challenge-list { list-style:none; margin:1.2rem 0 1.8rem; display:flex; flex-direction:column; gap:0.5rem; }
+.challenge-list li { display:flex; align-items:baseline; gap:0.7rem; font-family:'Noto Serif JP',serif; font-size:0.87rem; line-height:1.8; color:rgba(210,212,230,0.65); padding:0.5rem 0.8rem; border-left:2px solid rgba(122,143,212,0.2); }
+.challenge-list li.en { font-family:'Cormorant Garamond',serif; font-size:0.97rem; }
+.challenge-list li::before { content:'—'; color:rgba(122,143,212,0.4); font-size:0.7rem; flex-shrink:0; }
+
+/* Gap diagram */
+.gap-diagram { display:grid; grid-template-columns:1fr auto 1fr; gap:0; margin:2rem 0; align-items:stretch; }
+.gap-side { background:var(--mag-surface); border:1px solid var(--mag-border); padding:1.4rem 1.2rem; }
+.gap-side--left { border-right:none; }
+.gap-side--right { border-left:none; }
+.gap-center { display:flex; align-items:center; justify-content:center; background:rgba(122,143,212,0.08); border-top:1px solid var(--mag-border); border-bottom:1px solid var(--mag-border); padding:0 0.8rem; }
+.gap-center-text { font-family:'Space Mono',monospace; font-size:0.6rem; color:rgba(122,143,212,0.5); writing-mode:vertical-rl; letter-spacing:0.15em; }
+.gap-label { font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--blue); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.5rem; display:block; }
+.gap-text { font-family:'Noto Serif JP',serif; font-size:0.8rem; color:rgba(210,212,230,0.55); line-height:1.7; }
+.gap-text.en { font-family:'Cormorant Garamond',serif; font-size:0.9rem; }
+
+/* Section divider */
+.sdiv { width:3rem; height:1px; background:var(--blue); margin:3rem 0; }
+
+/* Closing */
+.article-close { border-top:1px solid rgba(122,143,212,0.15); padding-top:3rem; margin-top:4rem; }
+.close-q { font-family:'Cormorant Garamond',serif; font-size:clamp(1.2rem,2.5vw,1.7rem); color:var(--cream); line-height:1.5; font-style:italic; margin-bottom:2rem; }
+.author-line { font-family:'Space Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; color:rgba(210,212,230,0.3); text-transform:uppercase; text-align:right; margin-top:2rem; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,0.05); }
+
+/* Back strip */
+.back-strip { background:#0a0a12; border-top:1px solid rgba(122,143,212,0.1); padding:2.5rem 4rem; display:flex; align-items:center; justify-content:space-between; }
+.back-link { display:flex; align-items:center; gap:0.6rem; font-family:'Space Mono',monospace; font-size:0.68rem; letter-spacing:0.15em; color:rgba(201,168,76,0.6); text-decoration:none; text-transform:uppercase; transition:color 0.3s; }
+.back-link:hover { color:var(--gold); }
+.back-link::before { content:'←'; }
+.next-issue { font-family:'Space Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; color:rgba(210,212,230,0.2); text-transform:uppercase; }
+
+/* Footer */
+footer { background:var(--black); padding:2.5rem 4rem; display:flex; align-items:center; justify-content:space-between; }
+.fb { font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:0.95rem; letter-spacing:0.15em; }
+.fc { color:rgba(255,255,255,0.28); font-size:0.7rem; }
+
+/* Responsive */
+@media(max-width:768px){
+  nav { padding:1rem 1.5rem; }
+  .article-hero { padding:6rem 1.5rem 3rem; }
+  .article-wrap { padding:3.5rem 1.5rem 5rem; }
+  .process-grid { grid-template-columns:1fr; }
+  .gap-diagram { grid-template-columns:1fr; }
+  .gap-center { display:none; }
+  .back-strip { flex-direction:column; gap:1rem; text-align:center; padding:2rem 1.5rem; }
+  footer { flex-direction:column; gap:1rem; text-align:center; padding:2rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index_5wm.html" class="nav-logo">LINER NOTES CONSULTING</a>
+  <div class="nav-right">
+    <a href="blog_index.html" class="nav-back">
+      <span class="txt-ja">WEB MAGAZINE</span>
+      <span class="txt-en" style="display:none">WEB MAGAZINE</span>
+    </a>
+    <div class="lang-sw">
+      <button class="lbtn on" id="bjp" onclick="setLang('jp')">JP</button>
+      <button class="lbtn"    id="ben" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="article-hero">
+  <div class="hero-inner">
+    <span class="mag-label">WEB MAGAZINE — VOL.2</span>
+    <span class="article-vol txt-ja">AI / メディア / ガバナンス / 考察</span>
+    <span class="article-vol txt-en" style="display:none">AI / Media / Governance / Insight</span>
+
+    <h1 class="article-title-ja txt-ja">AIは「見えない領域」で<br>何を変えているのか</h1>
+    <h1 class="article-title-en txt-en" style="display:none">What Is AI Changing<br>in the Invisible Layer?</h1>
+
+    <p class="article-sub txt-ja">情報インフラ時代のメディアとガバナンスの再考</p>
+    <p class="article-sub-en txt-en" style="display:none">Rethinking Media and Governance in the Age of Information Infrastructure</p>
+
+    <div class="article-meta">
+      <span class="meta-tag">AI Strategy</span>
+      <span class="meta-tag">Media</span>
+      <span class="meta-tag">Governance</span>
+      <span class="meta-tag txt-ja">情報インフラ</span>
+      <span class="meta-tag txt-en" style="display:none">Info Infrastructure</span>
+      <span class="meta-date">2026</span>
+    </div>
+  </div>
+</header>
+
+<!-- ARTICLE -->
+<main class="article-wrap">
+
+  <!-- Lead -->
+  <div class="article-lead">
+    <p class="txt-ja">生成AIはクリエイティブ用途で注目されがちだ。しかし実際に最も大きな変化が起きているのは、私たちの目に見えない領域――情報の生成・配信・接触・痕跡管理が自動化されるレイヤーである。</p>
+    <p class="en txt-en" style="display:none">Generative AI tends to attract attention for creative applications. But the most significant changes are happening in a layer most of us never see — where the generation, distribution, consumption, and erasure of information are becoming fully automated.</p>
+  </div>
+
+  <!-- Layer diagram -->
+  <div class="layer-diagram">
+    <span class="layer-label">Visible vs. Invisible Layer — AI の影響構造</span>
+    <div class="layer-stack">
+      <div class="layer-item layer-item--visible">
+        <span class="layer-icon">VISIBLE</span>
+        <span class="layer-text txt-ja">クリエイティブ生成（文章・画像・動画）— 人間が見える領域</span>
+        <span class="layer-text en txt-en" style="display:none">Creative generation (text, image, video) — the layer humans see</span>
+      </div>
+      <div class="layer-arrow">↓</div>
+      <div class="layer-item layer-item--invisible">
+        <span class="layer-icon">INVISIBLE</span>
+        <span class="layer-text txt-ja">情報生成 / 配信 / 接触 / 痕跡管理 — 自動化されるレイヤー</span>
+        <span class="layer-text en txt-en" style="display:none">Content fabrication / distribution / perception / trace management — the automated layer</span>
+        <span class="invisible-badge">自動化</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sdiv"></div>
+
+  <!-- Section 1 -->
+  <div class="article-section">
+    <span class="section-num">Section 01</span>
+    <h2 class="section-heading txt-ja">AIが変えているのは"表"ではなく"裏側"のレイヤー</h2>
+    <h2 class="section-heading en txt-en" style="display:none">AI Is Changing the Back Layer, Not the Front</h2>
+
+    <p class="body-p txt-ja">不可視のレイヤー（Invisible Layer）では、情報生成・情報配信・情報接触・情報の痕跡管理がすべて自動化されつつある。これはクリエイティブ用途の話ではない。情報が社会に浸透するプロセスそのものが、人間の介在なしに動き始めている。</p>
+    <p class="body-p en txt-en" style="display:none">In the invisible layer, content fabrication, distribution orchestration, perception engineering, and trace management are all becoming automated. This is not about creative tools. It is about the process by which information penetrates society — beginning to operate without human involvement.</p>
+
+    <div class="insight-box">
+      <span class="insight-icon">Key</span>
+      <p class="insight-text txt-ja">AIは「何を作るか」より「どう広げ、どう消すか」の領域で、はるかに深く社会に影響している。</p>
+      <p class="insight-text en txt-en" style="display:none">AI influences society far more deeply in <em>how information spreads and disappears</em> than in <em>what it creates.</em></p>
+    </div>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="article-section">
+    <span class="section-num">Section 02</span>
+    <h2 class="section-heading txt-ja">大量生成・大量配信・大量接触の自動化</h2>
+    <h2 class="section-heading en txt-en" style="display:none">Automating Mass Fabrication, Distribution, and Exposure</h2>
+
+    <div class="process-grid">
+      <div class="proc-item">
+        <div class="proc-num">02 — 1</div>
+        <div class="proc-title txt-ja">大量生成</div>
+        <div class="proc-title txt-en" style="display:none">Content Fabrication</div>
+        <p class="proc-desc txt-ja">テキスト・ナレーション・動画・サムネイル・コメント・要約を数秒で生成。人間の制作速度を桁違いに超える。</p>
+        <p class="proc-desc en txt-en" style="display:none">Text, narration, video, thumbnails, comments, summaries — generated in seconds. Orders of magnitude faster than human production.</p>
+      </div>
+      <div class="proc-item">
+        <div class="proc-num">02 — 2</div>
+        <div class="proc-title txt-ja">大量配信</div>
+        <div class="proc-title txt-en" style="display:none">Distribution Orchestration</div>
+        <p class="proc-desc txt-ja">スケジュール投稿・自動ログイン・API連携・自動コメント・自動シェア。1人でも"情報運用チーム"のように振る舞える。</p>
+        <p class="proc-desc en txt-en" style="display:none">Scheduled posting, auto-login, API integration, auto-comments, auto-sharing. A single person can operate like an entire information team.</p>
+      </div>
+      <div class="proc-item">
+        <div class="proc-num">02 — 3</div>
+        <div class="proc-title txt-ja">大量接触</div>
+        <div class="proc-title txt-en" style="display:none">Perception Engineering</div>
+        <p class="proc-desc txt-ja">同じメッセージへの繰り返し接触は「多数派の意見」と錯覚させる。AIはこの接触回数を容易に増やし、認知形成のコストを劇的に下げた。</p>
+        <p class="proc-desc en txt-en" style="display:none">Repeated exposure to the same message creates the illusion of majority opinion. AI dramatically lowers the cost of manufacturing perceived consensus.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="article-section">
+    <span class="section-num">Section 03</span>
+    <h2 class="section-heading txt-ja">AIが"見えない"理由：痕跡が残りにくい構造</h2>
+    <h2 class="section-heading en txt-en" style="display:none">Why AI Stays Invisible: A Structurally Low-Trace Architecture</h2>
+
+    <p class="body-p txt-ja">AIによる情報生成・配信は、構造的に可視化されにくい。それには技術的な理由がある。</p>
+    <p class="body-p en txt-en" style="display:none">AI-driven information operations are structurally difficult to detect. There are clear technical reasons for this.</p>
+
+    <ul class="challenge-list">
+      <li class="txt-ja">投稿は削除すれば痕跡が薄い</li>
+      <li class="txt-ja">動画はテンプレート化されており特定が難しい</li>
+      <li class="txt-ja">アカウントは大量生成できる</li>
+      <li class="txt-ja">IPアドレスや端末情報は分散できる</li>
+      <li class="txt-ja">AI生成物は"人間らしさ"を模倣できる</li>
+      <li class="en txt-en" style="display:none">Posts leave minimal traces once deleted</li>
+      <li class="en txt-en" style="display:none">Templated videos are difficult to identify as AI-generated</li>
+      <li class="en txt-en" style="display:none">Accounts can be mass-created</li>
+      <li class="en txt-en" style="display:none">IP addresses and device fingerprints can be distributed</li>
+      <li class="en txt-en" style="display:none">AI-generated content can convincingly mimic human authorship</li>
+    </ul>
+
+    <div class="insight-box">
+      <span class="insight-icon">Key</span>
+      <p class="insight-text txt-ja">AIを使った情報運用は、構造的に<strong style="color:var(--blue-light)">「透明性が低い」</strong>。これは意図的な設計というより、技術の構造的帰結だ。</p>
+      <p class="insight-text en txt-en" style="display:none">AI-driven information operations are <strong style="color:var(--blue-light)">structurally low in transparency</strong> — not as intentional design, but as a structural consequence of the technology itself.</p>
+    </div>
+  </div>
+
+  <!-- Section 4 -->
+  <div class="article-section">
+    <span class="section-num">Section 04</span>
+    <h2 class="section-heading txt-ja">情報インフラとしてのメディア：放送局が直面する新たな課題</h2>
+    <h2 class="section-heading en txt-en" style="display:none">Media as Information Infrastructure: New Challenges for Broadcasters</h2>
+
+    <p class="body-p txt-ja">放送局は歴史的に高いSLAを要求される産業だ。しかしAIによって情報流通が自動化され、可視性が低下する時代において、放送局は3つの新たな課題に直面している。</p>
+    <p class="body-p en txt-en" style="display:none">Broadcasting has historically operated under demanding SLA requirements. But as AI automates information flow and reduces visibility, broadcasters now face three new structural challenges.</p>
+
+    <div class="process-grid">
+      <div class="proc-item">
+        <div class="proc-num">04 — 1</div>
+        <div class="proc-title txt-ja">真正性</div>
+        <div class="proc-title txt-en" style="display:none">Authenticity</div>
+        <p class="proc-desc txt-ja">AI生成物が大量流通する中で、放送局は「何が事実か」を判断し担保する責任を負う。</p>
+        <p class="proc-desc en txt-en" style="display:none">As AI-generated content floods the information space, broadcasters bear responsibility for determining and guaranteeing what is factual.</p>
+      </div>
+      <div class="proc-item">
+        <div class="proc-num">04 — 2</div>
+        <div class="proc-title txt-ja">ガバナンス透明性</div>
+        <div class="proc-title txt-en" style="display:none">Governance Transparency</div>
+        <p class="proc-desc txt-ja">AIが裏側で動くほど、意思決定プロセスの透明性がより強く求められる。</p>
+        <p class="proc-desc en txt-en" style="display:none">The more AI operates behind the scenes, the stronger the demand for transparent decision-making processes.</p>
+      </div>
+      <div class="proc-item">
+        <div class="proc-num">04 — 3</div>
+        <div class="proc-title txt-ja">知識の集約</div>
+        <div class="proc-title txt-en" style="display:none">Knowledge Aggregation</div>
+        <p class="proc-desc txt-ja">人間中心の運用モデルは限界に近づいている。放送局の運用知識・判断基準をAIが扱える形で体系化する必要がある。</p>
+        <p class="proc-desc en txt-en" style="display:none">Human-centered operational models are approaching their limits. Broadcasting's accumulated knowledge and decision criteria must be systematized in AI-accessible form.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5 -->
+  <div class="article-section">
+    <span class="section-num">Section 05</span>
+    <h2 class="section-heading txt-ja">世界的潮流：現場と技術潮流の間に生まれるギャップ</h2>
+    <h2 class="section-heading en txt-en" style="display:none">Global Trends: The Growing Gap Between Field Reality and Technical Direction</h2>
+
+    <p class="body-p txt-ja">放送局のIP化・ST 2110・DMF・MXLといった技術議論は進んでいる。しかし導入段階は局によって大きく異なる。一方でEBUやWEFが進める「情報インフラとしてのメディアガバナンス」という議論は、数年後の投資判断に直結する。</p>
+    <p class="body-p en txt-en" style="display:none">Technical discussions around broadcaster IP migration, ST 2110, DMF, and MXL are advancing. But adoption stages vary dramatically between organizations. Meanwhile, the EBU and WEF's push toward media governance as information infrastructure will directly shape investment decisions in the years ahead.</p>
+
+    <div class="gap-diagram">
+      <div class="gap-side gap-side--left">
+        <span class="gap-label txt-ja">現場の導入フェーズ</span>
+        <span class="gap-label txt-en" style="display:none">Field Adoption Phase</span>
+        <p class="gap-text txt-ja">ST 2110 / DMF / MXL — 局ごとに導入段階が大きく異なる</p>
+        <p class="gap-text en txt-en" style="display:none">ST 2110 / DMF / MXL — adoption stages vary dramatically by organization</p>
+      </div>
+      <div class="gap-center">
+        <span class="gap-center-text">GAP</span>
+      </div>
+      <div class="gap-side gap-side--right">
+        <span class="gap-label txt-ja">世界的な技術潮流</span>
+        <span class="gap-label txt-en" style="display:none">Global Technical Direction</span>
+        <p class="gap-text txt-ja">EBU / WEF — 情報インフラとしてのメディアガバナンス設計</p>
+        <p class="gap-text en txt-en" style="display:none">EBU / WEF — designing media governance as information infrastructure</p>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <span class="insight-icon">Point</span>
+      <p class="insight-text txt-ja">現場と世界潮流の間のギャップを埋めない限り、放送局は技術投資判断を誤り続けるリスクがある。</p>
+      <p class="insight-text en txt-en" style="display:none">Unless the gap between field reality and global direction is bridged, broadcasters risk continued misalignment in technology investment decisions.</p>
+    </div>
+  </div>
+
+  <div class="sdiv"></div>
+
+  <!-- Closing -->
+  <div class="article-close">
+    <p class="close-q txt-ja">「不可視レイヤーを理解し、ガバナンスを設計できる組織が、次のメディアインフラ時代の主導権を握る。」</p>
+    <p class="close-q txt-en" style="display:none">"Organizations that understand the invisible layer and can design governance around it will lead the next era of media infrastructure."</p>
+
+    <p class="body-p txt-ja">AIは、表に見えるクリエイティブ用途よりも、裏側の情報運用・自動化・心理効果の領域ではるかに大きな影響を与えている。この不可視レイヤーを理解しなければ、放送局はガバナンス・透明性・信頼性の維持が難しくなる。逆に言えば、このレイヤーを理解し、標準化し、ガバナンスを設計できる組織が、次のメディアインフラ時代の主導権を握る。</p>
+    <p class="body-p en txt-en" style="display:none">AI is exerting far greater influence in the domains of information operations, automation, and psychological effect than in the visible creative applications we typically discuss. Without understanding this invisible layer, broadcasters will find it increasingly difficult to maintain governance, transparency, and trustworthiness. Conversely, organizations that understand, standardize, and design governance around this layer will be positioned to lead the next era of media infrastructure.</p>
+
+    <p class="body-p txt-ja" style="color:rgba(210,212,230,0.5);font-size:0.85rem">※ 次号（VOL.3）では、このテーマをさらに深掘りし、放送局のAIガバナンスと知識集約の具体的な議論へと進む。</p>
+    <p class="body-p en txt-en" style="display:none;color:rgba(210,212,230,0.5);font-size:0.9rem">※ In the next issue (VOL.3), we take this theme further — into the specific debate around AI governance and knowledge aggregation for broadcasters.</p>
+
+    <div class="author-line">Liner Notes Consulting — Web Magazine Vol.2 — 2026</div>
+  </div>
+
+</main>
+
+<!-- BACK STRIP -->
+<div class="back-strip">
+  <a href="blog_index.html" class="back-link">
+    <span class="txt-ja">WEB MAGAZINEに戻る</span>
+    <span class="txt-en" style="display:none">Back to Web Magazine</span>
+  </a>
+  <span class="next-issue txt-ja">VOL.3 近日公開予定</span>
+  <span class="next-issue txt-en" style="display:none">VOL.3 — Coming Soon</span>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="fb">LINER NOTES CONSULTING</div>
+  <div class="fc">Copyright © 2026 前田 康夫 (Maeda Yasuo) / Liner Notes Consulting. All rights reserved.</div>
+</footer>
+
+<script>
+function setLang(lang) {
+  document.querySelectorAll('.txt-ja').forEach(function(el){ el.style.display = lang==='jp' ? '' : 'none'; });
+  document.querySelectorAll('.txt-en').forEach(function(el){ el.style.display = lang==='en' ? '' : 'none'; });
+  document.getElementById('bjp').className = 'lbtn' + (lang==='jp' ? ' on' : '');
+  document.getElementById('ben').className = 'lbtn' + (lang==='en' ? ' on' : '');
+  document.documentElement.lang = lang==='jp' ? 'ja' : 'en';
+}
+</script>
+</body>
+</html>
