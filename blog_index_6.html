@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Liner Notes Consulting</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Noto+Serif+JP:wght@300;400;600&family=Noto+Sans+JP:wght@300;400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:      #0a0a0a;
+  --dark:       #111418;
+  --charcoal:   #1e2428;
+  --gold:       #c9a84c;
+  --gold-light: #e8c97a;
+  --cream:      #f5f0e8;
+  --white:      #ffffff;
+  --text-muted: rgba(255,255,255,0.75);
+  --text-dim:   rgba(255,255,255,0.5);
+  --green:      #9ec06e;
+  --blue:       #5a8fc2;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Noto Sans JP',sans-serif;
+  background:#0e100e;
+  color:var(--white);
+  overflow-x:hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.1rem 4rem;
+  background:rgba(10,10,10,0.97);
+  border-bottom:1px solid rgba(201,168,76,0.25);
+}
+.nav-logo {
+  font-family:'Cormorant Garamond',serif;
+  color:var(--gold); font-size:1rem;
+  letter-spacing:0.15em; text-decoration:none;
+}
+.nav-right { display:flex; align-items:center; gap:2rem; }
+.nav-back {
+  display:flex; align-items:center; gap:0.4rem;
+  color:rgba(255,255,255,0.45); font-size:0.72rem;
+  letter-spacing:0.12em; text-decoration:none;
+  transition:color 0.3s;
+}
+.nav-back::before { content:'←'; }
+.nav-back:hover { color:var(--gold); }
+.lang-sw {
+  display:flex; border:1px solid rgba(201,168,76,0.5);
+  overflow:hidden; border-radius:2px;
+}
+.lbtn {
+  padding:0.3rem 0.85rem; background:transparent;
+  border:none; color:rgba(255,255,255,0.45);
+  font-size:0.72rem; cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif; transition:all 0.25s;
+}
+.lbtn.on { background:var(--gold); color:var(--black); font-weight:bold; }
+
+/* ── PAGE HEADER ── */
+.page-header {
+  padding:9rem 4rem 4rem;
+  background:linear-gradient(to bottom,#0e100e,#131510);
+  border-bottom:1px solid rgba(201,168,76,0.1);
+  position:relative; overflow:hidden;
+}
+.page-header::before {
+  content:'';
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse 50% 60% at 90% 50%, rgba(201,168,76,0.05) 0%, transparent 70%);
+  pointer-events:none;
+}
+.header-inner { max-width:980px; margin:0 auto; position:relative; z-index:1; }
+.page-eyebrow {
+  font-family:'Space Mono',monospace;
+  font-size:0.65rem; letter-spacing:0.38em;
+  text-transform:uppercase; color:var(--gold);
+  display:block; margin-bottom:1rem;
+}
+.page-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2rem,4vw,3.2rem);
+  font-weight:300; color:var(--cream);
+  letter-spacing:0.05em; line-height:1.15;
+  margin-bottom:0.8rem;
+}
+.page-desc {
+  font-family:'Noto Serif JP',serif;
+  font-size:0.9rem; color:rgba(200,212,196,0.5);
+  font-weight:300; line-height:1.9;
+}
+.page-desc.en {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1rem; font-style:italic;
+}
+
+/* ── SECTION WRAPPER ── */
+.blog-section {
+  padding:5rem 4rem;
+  max-width:1080px; margin:0 auto;
+}
+.blog-section + .blog-section {
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+
+.section-header { margin-bottom:2.5rem; }
+.section-category {
+  font-family:'Space Mono',monospace;
+  font-size:0.6rem; letter-spacing:0.3em;
+  text-transform:uppercase;
+  display:block; margin-bottom:0.6rem;
+}
+.section-category--green { color:rgba(158,192,110,0.6); }
+.section-category--gold  { color:rgba(201,168,76,0.6); }
+
+.section-title {
+  font-family:'Noto Serif JP',serif;
+  font-size:1.2rem; font-weight:300;
+  color:var(--cream); line-height:1.4;
+  margin-bottom:0.4rem;
+}
+.section-title.en {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.45rem; font-style:italic;
+}
+.section-rule {
+  width:2.5rem; height:1px; margin-top:1rem;
+}
+.section-rule--green { background:var(--green); }
+.section-rule--gold  { background:var(--gold); }
+
+/* ── CARD GRID ── */
+.card-grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:2px;
+}
+.card-grid--3 { grid-template-columns:repeat(3,1fr); }
+
+/* Base card */
+.bcard {
+  display:block; text-decoration:none;
+  padding:2.2rem 2rem;
+  position:relative; overflow:hidden;
+  transition:background 0.25s, transform 0.2s;
+}
+.bcard:hover { transform:translateY(-2px); }
+.bcard--dim { cursor:default; pointer-events:none; }
+
+/* Green = Dev Blog */
+.bcard--green { background:#1a1d1a; }
+.bcard--green:hover { background:#212620; }
+
+/* Gold = Web Magazine */
+.bcard--gold { background:#1c1a14; }
+.bcard--gold:hover { background:#231f15; }
+
+/* Dim */
+.bcard--dim { background:#161917; }
+
+/* Card top accent line */
+.bcard::before {
+  content:''; position:absolute;
+  top:0; left:0; right:0; height:2px;
+  transform:scaleX(0); transform-origin:left;
+  transition:transform 0.35s;
+}
+.bcard--green::before { background:var(--green); }
+.bcard--gold::before  { background:var(--gold); }
+.bcard:hover::before  { transform:scaleX(1); }
+
+.card-vol {
+  font-family:'Space Mono',monospace;
+  font-size:0.62rem; letter-spacing:0.28em;
+  text-transform:uppercase; margin-bottom:0.45rem;
+}
+.bcard--green .card-vol { color:var(--green); }
+.bcard--gold  .card-vol { color:var(--gold); }
+.bcard--dim   .card-vol { color:rgba(158,192,110,0.25); }
+
+.card-phase {
+  font-family:'Space Mono',monospace;
+  font-size:0.58rem; letter-spacing:0.14em;
+  color:rgba(200,212,196,0.32); text-transform:uppercase;
+  margin-bottom:0.9rem;
+}
+.card-title {
+  font-family:'Noto Serif JP',serif;
+  font-size:0.97rem; font-weight:400;
+  line-height:1.55; margin-bottom:0.85rem;
+  letter-spacing:-0.01em;
+}
+.bcard--green .card-title { color:#eef1ea; }
+.bcard--gold  .card-title { color:#f0ecd8; }
+.bcard--dim   .card-title { color:rgba(200,212,196,0.28); }
+
+.card-desc {
+  font-family:'Noto Serif JP',serif;
+  font-size:0.8rem; line-height:1.95;
+  margin-bottom:1.2rem;
+}
+.bcard--green .card-desc { color:rgba(200,212,196,0.55); }
+.bcard--gold  .card-desc { color:rgba(220,210,180,0.55); }
+.bcard--dim   .card-desc { color:rgba(200,212,196,0.2); }
+
+.card-tags {
+  display:flex; flex-wrap:wrap; gap:0.4rem;
+  margin-bottom:0.8rem;
+}
+.card-tags span {
+  font-family:'Space Mono',monospace;
+  font-size:0.56rem; letter-spacing:0.1em;
+  padding:0.22rem 0.55rem;
+  text-transform:uppercase;
+}
+.bcard--green .card-tags span {
+  border:1px solid rgba(158,192,110,0.22);
+  color:rgba(158,192,110,0.5);
+}
+.bcard--gold .card-tags span {
+  border:1px solid rgba(201,168,76,0.22);
+  color:rgba(201,168,76,0.5);
+}
+.bcard--dim .card-tags span {
+  border:1px solid rgba(255,255,255,0.06);
+  color:rgba(255,255,255,0.15);
+}
+
+.card-arrow {
+  font-family:'Space Mono',monospace;
+  font-size:0.82rem;
+  position:absolute; bottom:1.8rem; right:1.8rem;
+  transition:transform 0.2s;
+}
+.bcard--green .card-arrow { color:var(--green); }
+.bcard--gold  .card-arrow { color:var(--gold); }
+.bcard--dim   .card-arrow { color:rgba(200,212,196,0.12); }
+.bcard:hover .card-arrow { transform:translateX(4px); }
+
+/* ── CATEGORY OVERVIEW BADGES ── */
+.cat-overview {
+  display:flex; gap:1px;
+  margin-top:2.5rem;
+  border:1px solid rgba(255,255,255,0.06);
+  overflow:hidden;
+}
+.cat-badge {
+  flex:1; display:flex; align-items:flex-start; gap:1rem;
+  padding:1.2rem 1.4rem;
+}
+.cat-badge--green { background:rgba(158,192,110,0.07); border-top:2px solid rgba(158,192,110,0.5); }
+.cat-badge--gold  { background:rgba(201,168,76,0.07);  border-top:2px solid rgba(201,168,76,0.5); }
+.cat-badge--rose  { background:rgba(195,130,110,0.07); border-top:2px solid rgba(195,130,110,0.45); }
+.cat-badge-label {
+  font-family:'Space Mono',monospace;
+  font-size:1.4rem; font-weight:700; line-height:1;
+  flex-shrink:0; opacity:0.18;
+}
+.cat-badge--green .cat-badge-label { color:var(--green); }
+.cat-badge--gold  .cat-badge-label { color:var(--gold); }
+.cat-badge--rose  .cat-badge-label { color:#c3826e; }
+.cat-badge-name {
+  font-family:'Space Mono',monospace;
+  font-size:0.62rem; letter-spacing:0.15em;
+  text-transform:uppercase; margin-bottom:0.35rem;
+}
+.cat-badge--green .cat-badge-name { color:rgba(158,192,110,0.8); }
+.cat-badge--gold  .cat-badge-name { color:rgba(201,168,76,0.8); }
+.cat-badge--rose  .cat-badge-name { color:rgba(195,130,110,0.8); }
+.cat-badge-desc {
+  font-family:'Noto Serif JP',serif;
+  font-size:0.75rem; line-height:1.6;
+  color:rgba(200,212,196,0.4); font-weight:300;
+}
+
+.sub-cat-label {
+  font-family:'Space Mono',monospace;
+  font-size:0.62rem; letter-spacing:0.25em;
+  text-transform:uppercase; color:rgba(195,130,110,0.55);
+  margin-bottom:0.8rem;
+  padding-bottom:0.5rem;
+  border-bottom:1px solid rgba(195,130,110,0.12);
+}
+
+/* ── LIFESTYLE card ── */
+.bcard--rose { background:#1d1714; }
+.bcard--rose:hover { background:#241a16; }
+.bcard--rose::before { background:#c3826e; }
+.bcard--rose .card-vol  { color:#c3826e; }
+.bcard--rose .card-title { color:#f0ebe8; }
+.bcard--rose .card-desc  { color:rgba(220,200,190,0.55); }
+.bcard--rose .card-tags span {
+  border:1px solid rgba(195,130,110,0.22);
+  color:rgba(195,130,110,0.5);
+}
+.bcard--rose .card-arrow { color:#c3826e; }
+.section-category--rose { color:rgba(195,130,110,0.6); }
+.section-rule--rose { background:#c3826e; }
+
+/* ── FOOTER ── */
+footer {
+  background:var(--black);
+  padding:2.5rem 4rem;
+  display:flex; align-items:center; justify-content:space-between;
+  border-top:1px solid rgba(201,168,76,0.1);
+}
+.fb { font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:0.95rem; letter-spacing:0.15em; }
+.fc { color:rgba(255,255,255,0.28); font-size:0.7rem; }
+.footer-home {
+  display:flex; align-items:center; gap:0.5rem;
+  font-family:'Space Mono',monospace;
+  font-size:0.65rem; letter-spacing:0.15em;
+  color:rgba(201,168,76,0.55); text-decoration:none;
+  text-transform:uppercase; transition:color 0.3s;
+  border:1px solid rgba(201,168,76,0.2);
+  padding:0.45rem 1rem;
+}
+.footer-home:hover { color:var(--gold); border-color:rgba(201,168,76,0.5); }
+.footer-home::before { content:'← '; }
+
+/* ── COMING SOON card（デスクトップのみ1/3幅） ── */
+.bcard--coming {
+  grid-column: 1 / -1;
+  max-width: calc(33.33% - 1px);
+}
+@media(max-width:900px){
+  .bcard--coming {
+    grid-column: auto;
+    max-width: 100%;
+  }
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  nav { padding:1rem 1.5rem; }
+  .page-header { padding:7rem 1.5rem 3rem; }
+  .blog-section { padding:3.5rem 1.5rem; }
+  .card-grid, .card-grid--3 { grid-template-columns:1fr; }
+  .cat-overview { flex-direction:column; gap:1px; }
+  footer { flex-direction:column; gap:1rem; text-align:center; padding:2rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="index_5wm.html" class="nav-logo">LINER NOTES CONSULTING</a>
+  <div class="nav-right">
+    <a href="index_5wm.html" class="nav-back">
+      <span class="txt-ja">ホームへ</span>
+      <span class="txt-en" style="display:none">Home</span>
+    </a>
+    <div class="lang-sw">
+      <button class="lbtn on" id="bjp" onclick="setLang('jp')">JP</button>
+      <button class="lbtn"    id="ben" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ── -->
+<header class="page-header">
+  <div class="header-inner">
+    <span class="page-eyebrow">LINER NOTES CONSULTING</span>
+    <h1 class="page-title">Blog</h1>
+    <p class="page-desc txt-ja">3つの視点から書く。開発の記録、業界への考察、そして日常の断片。</p>
+    <p class="page-desc en txt-en" style="display:none">Three perspectives. Development records, industry insights, and fragments of everyday life.</p>
+
+    <div class="cat-overview">
+      <div class="cat-badge cat-badge--green">
+        <span class="cat-badge-label">01</span>
+        <div>
+          <div class="cat-badge-name txt-ja">CANTO 開発ブログ</div>
+          <div class="cat-badge-name txt-en" style="display:none">CANTO Dev Blog</div>
+          <div class="cat-badge-desc txt-ja">音楽管理アプリCANTOの開発記録</div>
+          <div class="cat-badge-desc txt-en" style="display:none">Building a music management app</div>
+        </div>
+      </div>
+      <div class="cat-badge cat-badge--gold">
+        <span class="cat-badge-label">02</span>
+        <div>
+          <div class="cat-badge-name txt-ja">WEB MAGAZINE</div>
+          <div class="cat-badge-name txt-en" style="display:none">WEB MAGAZINE</div>
+          <div class="cat-badge-desc txt-ja">映像・AI・ビジネスを巡る考察</div>
+          <div class="cat-badge-desc txt-en" style="display:none">Perspectives on video, AI &amp; business</div>
+        </div>
+      </div>
+      <div class="cat-badge cat-badge--rose">
+        <span class="cat-badge-label">03</span>
+        <div>
+          <div class="cat-badge-name txt-ja">LIFESTYLE</div>
+          <div class="cat-badge-name txt-en" style="display:none">LIFESTYLE</div>
+          <div class="cat-badge-desc txt-ja">旅・食・日常・思うこと</div>
+          <div class="cat-badge-desc txt-en" style="display:none">Personal notes, travel &amp; everyday life</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════
+     SECTION 1: DEV BLOG
+══════════════════════ -->
+<div style="background:#131510">
+<div class="blog-section">
+
+  <div class="section-header">
+    <span class="section-category section-category--green txt-ja">開発ブログ</span>
+    <span class="section-category section-category--green txt-en" style="display:none">Development Blog</span>
+    <h2 class="section-title txt-ja">CANTO 開発記録 — 全シリーズ</h2>
+    <h2 class="section-title en txt-en" style="display:none">CANTO Development Log — All Series</h2>
+    <div class="section-rule section-rule--green"></div>
+  </div>
+
+  <div class="card-grid card-grid--3">
+
+    <!-- Vol.1–4 -->
+    <a href="canto_blog_vol1-4.html" target="_blank" rel="noopener" class="bcard bcard--green">
+      <div class="card-vol">VOL.1 — 4</div>
+      <div class="card-phase">PHASE 01–04</div>
+      <h3 class="card-title">
+        <span class="txt-ja">誕生・命名・DB・ポータビリティ</span>
+        <span class="txt-en" style="display:none">Origins · Name · DB &amp; Portability</span>
+      </h3>
+      <p class="card-desc">
+        <span class="txt-ja">プロトタイプ「CRATE」から「CANTO」への命名、フォルダー構造、軽量DBとJSON移行まで — 開発初期の全記録。</span>
+        <span class="txt-en" style="display:none">From prototype "CRATE" to the name "CANTO", folder structure, lightweight DB and JSON portability — the complete early-stage record.</span>
+      </p>
+      <div class="card-tags">
+        <span>Origin Story</span><span>Naming</span><span>IndexedDB</span><span>JSON Export</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <!-- Vol.5 -->
+    <a href="canto_blog_vol5_6.html#vol5" target="_blank" rel="noopener" class="bcard bcard--green">
+      <div class="card-vol">VOL.5</div>
+      <div class="card-phase">PHASE 05 — CLIP EXPORT</div>
+      <h3 class="card-title">
+        <span class="txt-ja">ブラウザという檻の中でクリップ抽出を実現するまで</span>
+        <span class="txt-en" style="display:none">Achieving Clip Export Within Browser Constraints</span>
+      </h3>
+      <p class="card-desc">
+        <span class="txt-ja">長尺音源からのIN/OUTクリップ生成。Web Audio APIの制限と格闘しながら、Webアプリとしての設計を守り抜いた記録。</span>
+        <span class="txt-en" style="display:none">Generating IN/OUT clips from long recordings. Wrestling with Web Audio API limits while preserving the web-app design principle.</span>
+      </p>
+      <div class="card-tags">
+        <span>Clip Export</span><span>Web Audio API</span><span>WAV / MP3</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <!-- Vol.6 -->
+    <a href="canto_blog_vol5_6.html#vol6" target="_blank" rel="noopener" class="bcard bcard--green">
+      <div class="card-vol">VOL.6</div>
+      <div class="card-phase">PHASE 06 — DESIGN PHILOSOPHY</div>
+      <h3 class="card-title">
+        <span class="txt-ja">見て楽しい、触れて気持ちいいデザインDNA</span>
+        <span class="txt-en" style="display:none">Design DNA — Built to Delight, Not Just to Function</span>
+      </h3>
+      <p class="card-desc">
+        <span class="txt-ja">メタデータ編集・iTunes Search・EQアナライザーの美学。日常的に使うからこそ、触れていて楽しいプレイヤーを目指した思想の記録。</span>
+        <span class="txt-en" style="display:none">Metadata editing, iTunes Search, EQ analyzer aesthetics. The philosophy behind building a player that's joyful to use every day.</span>
+      </p>
+      <div class="card-tags">
+        <span>Metadata</span><span>iTunes Search</span><span>EQ Analyzer</span><span>Artwork</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <!-- Vol.7 Coming Soon -->
+    <div class="bcard bcard--dim bcard--coming">
+      <div class="card-vol">VOL.7</div>
+      <div class="card-phase">NEXT — COMING SOON</div>
+      <h3 class="card-title">
+        <span class="txt-ja">アートワーク統合とビジュアル言語</span>
+        <span class="txt-en" style="display:none">Artwork Integration &amp; Visual Language</span>
+      </h3>
+      <p class="card-desc">
+        <span class="txt-ja">近日公開予定</span>
+        <span class="txt-en" style="display:none">Coming soon</span>
+      </p>
+      <div class="card-tags" style="opacity:0.3"><span>Artwork GUI</span><span>Visual Identity</span></div>
+      <div class="card-arrow" style="opacity:0.15">→</div>
+    </div>
+
+  </div><!-- /card-grid -->
+</div>
+</div>
+
+<!-- ══════════════════════
+     SECTION 2: WEB MAGAZINE
+══════════════════════ -->
+<div style="background:#111008">
+<div class="blog-section">
+
+  <div class="section-header">
+    <span class="section-category section-category--gold txt-ja">ウェブマガジン</span>
+    <span class="section-category section-category--gold txt-en" style="display:none">Web Magazine</span>
+    <h2 class="section-title txt-ja">映像・AI・ビジネスを巡る考察</h2>
+    <h2 class="section-title en txt-en" style="display:none">Perspectives on Video, AI &amp; Business</h2>
+    <div class="section-rule section-rule--gold"></div>
+  </div>
+
+  <div class="card-grid">
+
+    <!-- WM Vol.1 -->
+    <a href="web_magazine_vol1.html" target="_blank" rel="noopener" class="bcard bcard--gold">
+      <div class="card-vol">VOL.1</div>
+      <div class="card-phase">AI STRATEGY — 2026</div>
+      <h3 class="card-title">
+        <span class="txt-ja">エンタープライズAIで最も難しいのはAIではない</span>
+        <span class="txt-en" style="display:none">The Hardest Part of Enterprise AI Isn't the AI</span>
+      </h3>
+      <p class="card-desc">
+        <span class="txt-ja">LLM、RAG、Agent、MCP――本当の課題は「つなぐこと」にある。AIモデル選定より、オーケストレーション設計こそが企業AI実装の核心だ。</span>
+        <span class="txt-en" style="display:none">LLM, RAG, Agent, MCP — the real challenge is integration. Orchestration design, not model selection, is the core of enterprise AI implementation.</span>
+      </p>
+      <div class="card-tags">
+        <span>AI Strategy</span><span>Enterprise</span><span>LLM / RAG</span><span>MCP</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <!-- WM Vol.2 -->
+    <a href="web_magazine_vol2.html" target="_blank" rel="noopener" class="bcard bcard--gold">
+      <div class="card-vol">VOL.2</div>
+      <div class="card-phase">AI STRATEGY — 2026</div>
+      <h3 class="card-title">
+        <span class="txt-ja">AIは「見えない領域」で何を変えているのか</span>
+        <span class="txt-en" style="display:none">What Is AI Changing in the Invisible Layer?</span>
+      </h3>
+      <p class="card-desc">
+        <span class="txt-ja">情報インフラ時代のメディアとガバナンスの再考。大量生成・配信・接触の自動化が放送局に突きつける、不可視の課題。</span>
+        <span class="txt-en" style="display:none">Rethinking media and governance in the age of information infrastructure. The invisible challenges that automated fabrication and distribution pose to broadcasters.</span>
+      </p>
+      <div class="card-tags">
+        <span>AI Strategy</span><span>Media</span><span>Governance</span><span>Broadcasting</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+  </div><!-- /card-grid -->
+</div>
+</div>
+
+<!-- ── SECTION 3: LIFESTYLE ── -->
+<div style="background:#120f0d">
+<div class="blog-section">
+
+  <div class="section-header">
+    <span class="section-category section-category--rose txt-ja">ライフスタイル</span>
+    <span class="section-category section-category--rose txt-en" style="display:none">Lifestyle</span>
+    <h2 class="section-title txt-ja">旅・食・日常・思うこと</h2>
+    <h2 class="section-title en txt-en" style="display:none">Travel, Food, Daily Life &amp; Personal Notes</h2>
+    <div class="section-rule section-rule--rose"></div>
+  </div>
+
+  <!-- サブカテゴリ：大人の休日 -->
+  <div class="sub-cat-label">
+    <span class="txt-ja">大人の休日シリーズ</span>
+    <span class="txt-en" style="display:none">Otona no Kyujitsu Series</span>
+  </div>
+  <div class="card-grid" style="margin-bottom:2px">
+
+    <!-- 大人の休日 VOL.1 公開中 -->
+    <a href="https://jazz71655-source.github.io/webmanaginemystyle/" target="_blank" rel="noopener" class="bcard bcard--rose">
+      <div class="card-vol">VOL.1</div>
+      <div class="card-phase">PUBLISHED — 京都の海岸</div>
+      <h3 class="card-title">
+        <span class="txt-ja">大人の休日 京都の海岸 — 舞鶴から伊根、そして京丹後・山陰海岸ジオパークへ</span>
+        <span class="txt-en" style="display:none">Otona no Kyujitsu — Kyoto Coast: From Maizuru to Ine and the San'in Geopark</span>
+      </h3>
+      <p class="card-desc">
+        <span class="txt-ja">日本海側の絶景を巡る旅。伊根の舟屋、京丹後の海岸線、山陰海岸ジオパークの自然美。</span>
+        <span class="txt-en" style="display:none">A journey along the Sea of Japan coast — the boathouses of Ine, the Kyotango coastline, and the natural beauty of the San'in Geopark.</span>
+      </p>
+      <div class="card-tags">
+        <span>京都</span><span>伊根</span><span>山陰海岸</span><span>ジオパーク</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <!-- 大人の休日 VOL.2 予告 -->
+    <div class="bcard bcard--dim">
+      <div class="card-vol" style="color:rgba(195,130,110,0.35)">VOL.2</div>
+      <div class="card-phase">COMING SOON</div>
+      <h3 class="card-title" style="color:rgba(240,235,232,0.3)">
+        <span class="txt-ja">兵庫県新温泉町へ</span>
+        <span class="txt-en" style="display:none">Heading to Shinonsen-cho, Hyogo</span>
+      </h3>
+      <p class="card-desc" style="opacity:0.35">
+        <span class="txt-ja">山陰海岸ジオパークの旅、続編。</span>
+        <span class="txt-en" style="display:none">Continuing along the San'in Geopark coast.</span>
+      </p>
+      <div class="card-tags" style="opacity:0.25"><span>兵庫</span><span>新温泉町</span></div>
+      <div class="card-arrow" style="opacity:0.15">→</div>
+    </div>
+
+  </div>
+
+  <!-- サブカテゴリ：社主の独り言 -->
+  <div class="sub-cat-label" style="margin-top:2rem">
+    <span class="txt-ja">社主の独り言</span>
+    <span class="txt-en" style="display:none">Personal Notes</span>
+  </div>
+  <div class="card-grid">
+    <div class="bcard bcard--dim">
+      <div class="card-vol" style="color:rgba(195,130,110,0.2)">VOL.1</div>
+      <div class="card-phase">COMING SOON</div>
+      <h3 class="card-title" style="opacity:0.2">—</h3>
+      <p class="card-desc" style="opacity:0.15">
+        <span class="txt-ja">日常の断片、思うこと。近日公開予定。</span>
+        <span class="txt-en" style="display:none">Fragments of daily life. Coming soon.</span>
+      </p>
+    </div>
+    <div class="bcard bcard--dim" style="opacity:0.4">
+      <div class="card-vol" style="color:rgba(195,130,110,0.1)">VOL.2</div>
+      <div class="card-phase">—</div>
+      <h3 class="card-title" style="opacity:0.1">—</h3>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="fb">LINER NOTES CONSULTING</div>
+  <a href="index_5wm.html" class="footer-home">
+    <span class="txt-ja">ホームへ</span>
+    <span class="txt-en" style="display:none">Home</span>
+  </a>
+  <div class="fc">Copyright © 2026 前田 康夫 (Maeda Yasuo) / Liner Notes Consulting. All rights reserved.</div>
+</footer>
+
+<script>
+function setLang(lang) {
+  document.querySelectorAll('.txt-ja').forEach(function(el){ el.style.display = lang==='jp' ? '' : 'none'; });
+  document.querySelectorAll('.txt-en').forEach(function(el){ el.style.display = lang==='en' ? '' : 'none'; });
+  document.getElementById('bjp').className = 'lbtn' + (lang==='jp' ? ' on' : '');
+  document.getElementById('ben').className = 'lbtn' + (lang==='en' ? ' on' : '');
+  document.documentElement.lang = lang==='jp' ? 'ja' : 'en';
+}
+</script>
+</body>
+</html>
