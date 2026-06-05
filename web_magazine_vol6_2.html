@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIが理解できるシステムを、あなたは持っているか？ / Do You Have a System That AI Can Truly Understand? — Liner Notes Consulting</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Noto+Serif+JP:wght@300;400;600&family=Noto+Sans+JP:wght@300;400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0a0a0a;--gold:#c9a84c;--gold-light:#e8c97a;--cream:#f5f0e8;--white:#ffffff;
+  --mag-bg:#080e0f;--mag-surface:#101a1c;--mag-border:rgba(80,200,180,0.15);
+  --mag-text:rgba(200,230,225,0.82);--mag-text-dim:rgba(200,230,225,0.48);
+  --cyan:#3dbfb0;--cyan-light:#72d9cc;--cyan-dim:rgba(61,191,176,0.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--mag-bg);color:var(--white);overflow-x:hidden;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;padding:0.9rem 4rem;background:rgba(6,12,13,0.97);border-bottom:1px solid rgba(61,191,176,0.2);}
+.nav-logo{font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:1rem;letter-spacing:0.15em;text-decoration:none;}
+.nav-right{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;justify-content:flex-end;}
+.nav-back{display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.45);font-size:0.72rem;letter-spacing:0.12em;text-decoration:none;transition:color 0.3s;}
+.nav-back::before{content:'←';font-size:0.85rem;}.nav-back:hover{color:var(--gold);}
+.lang-sw{display:flex;border:1px solid rgba(201,168,76,0.5);overflow:hidden;border-radius:2px;}
+.lbtn{padding:0.28rem 0.7rem;background:transparent;border:none;color:rgba(255,255,255,0.45);font-size:0.72rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all 0.25s;}
+.lbtn.on{background:var(--gold);color:var(--black);font-weight:bold;}
+
+.article-hero{min-height:54vh;background:linear-gradient(150deg,#050c0d 0%,#091416 55%,#0c1a1c 100%);display:flex;align-items:flex-end;padding:8rem 4rem 4rem;position:relative;overflow:hidden;border-bottom:1px solid var(--mag-border);}
+.article-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 55% at 75% 35%,rgba(61,191,176,0.07) 0%,transparent 70%);}
+.hero-inner{position:relative;z-index:2;max-width:860px;}
+.mag-label{display:inline-flex;align-items:center;gap:0.7rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--cyan);margin-bottom:1.4rem;}
+.mag-label::before{content:'';display:inline-block;width:2rem;height:1px;background:var(--cyan);}
+.article-vol{font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.25em;color:rgba(61,191,176,0.5);text-transform:uppercase;display:block;margin-bottom:0.8rem;}
+.article-title-ja{font-family:'Noto Serif JP',serif;font-size:clamp(1.5rem,3.5vw,2.4rem);font-weight:300;color:var(--cream);line-height:1.45;margin-bottom:0.5rem;}
+.article-title-en{font-family:'Cormorant Garamond',serif;font-size:clamp(1.2rem,2.5vw,1.9rem);font-weight:300;color:var(--cream);line-height:1.35;margin-bottom:0.5rem;}
+.article-sub{font-family:'Noto Serif JP',serif;font-size:0.9rem;color:rgba(200,230,225,0.5);line-height:1.7;margin-bottom:1.8rem;font-weight:300;}
+.article-sub-en{font-family:'Cormorant Garamond',serif;font-size:1rem;color:rgba(200,230,225,0.5);line-height:1.7;margin-bottom:1.8rem;font-style:italic;}
+.article-meta{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;}
+.meta-tag{font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.15em;padding:0.25rem 0.7rem;border:1px solid rgba(61,191,176,0.3);color:rgba(61,191,176,0.6);text-transform:uppercase;}
+.meta-date{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;color:rgba(200,230,225,0.3);}
+
+.article-wrap{max-width:780px;margin:0 auto;padding:5rem 4rem 6rem;}
+.article-lead{border-left:3px solid var(--cyan);padding:1.5rem 1.8rem;background:rgba(61,191,176,0.05);margin-bottom:3.5rem;}
+.article-lead p{font-family:'Noto Serif JP',serif;font-size:1.0rem;line-height:2.2;color:rgba(200,230,225,0.85);font-weight:300;}
+.article-lead p.en{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;line-height:1.9;}
+
+.article-section{margin-bottom:3.5rem;}
+.section-num{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:rgba(61,191,176,0.4);display:block;margin-bottom:0.5rem;text-transform:uppercase;}
+.section-heading{font-family:'Noto Serif JP',serif;font-size:1.15rem;font-weight:400;color:var(--cyan-light);line-height:1.5;margin-bottom:1.4rem;padding-bottom:0.7rem;border-bottom:1px solid rgba(61,191,176,0.12);}
+.section-heading.en{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-style:italic;}
+
+.body-p{font-family:'Noto Serif JP',serif;font-size:0.93rem;line-height:2.4;color:var(--mag-text);font-weight:300;margin-bottom:1.4rem;}
+.body-p.en{font-family:'Cormorant Garamond',serif;font-size:1.05rem;line-height:2.0;}
+
+.insight-box{display:flex;align-items:flex-start;gap:1rem;padding:1.2rem 1.4rem;background:rgba(61,191,176,0.06);border:1px solid rgba(61,191,176,0.18);margin:2rem 0;}
+.insight-icon{font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.1em;flex-shrink:0;padding-top:0.2rem;text-transform:uppercase;}
+.insight-text{font-family:'Noto Serif JP',serif;font-size:0.87rem;line-height:2.0;color:rgba(200,230,225,0.75);font-weight:300;}
+.insight-text.en{font-family:'Cormorant Garamond',serif;font-size:1rem;line-height:1.85;}
+
+/* Observability transition */
+.obs-transition{display:grid;grid-template-columns:1fr auto 1fr;gap:0;margin:2rem 0;align-items:stretch;}
+.obs-side{background:var(--mag-surface);border:1px solid var(--mag-border);padding:1.4rem 1.2rem;}
+.obs-side--right{border-top:2px solid var(--cyan);}
+.obs-center{display:flex;align-items:center;justify-content:center;background:rgba(61,191,176,0.08);border-top:1px solid var(--mag-border);border-bottom:1px solid var(--mag-border);padding:0 0.8rem;}
+.obs-arrow{font-size:1.2rem;color:rgba(61,191,176,0.5);}
+.obs-label{font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.5rem;}
+.obs-item{font-family:'Noto Serif JP',serif;font-size:0.8rem;color:rgba(200,230,225,0.55);line-height:1.8;display:flex;align-items:baseline;gap:0.5rem;}
+.obs-item.en{font-family:'Cormorant Garamond',serif;font-size:0.9rem;}
+.obs-item::before{content:'—';color:rgba(61,191,176,0.3);flex-shrink:0;font-size:0.7rem;}
+
+/* 3 sources grid */
+.sources-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin:1.5rem 0 2rem;}
+.src-item{background:var(--mag-surface);border:1px solid var(--mag-border);border-top:2px solid var(--cyan);padding:1.1rem 1rem;}
+.src-num{font-family:'Space Mono',monospace;font-size:0.58rem;color:rgba(61,191,176,0.4);letter-spacing:0.2em;display:block;margin-bottom:0.4rem;}
+.src-name{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan-light);letter-spacing:0.08em;margin-bottom:0.4rem;display:block;}
+.src-layer{font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(61,191,176,0.4);letter-spacing:0.12em;margin-bottom:0.5rem;display:block;}
+.src-desc{font-family:'Noto Serif JP',serif;font-size:0.76rem;color:rgba(200,230,225,0.5);line-height:1.65;}
+.src-desc.en{font-family:'Cormorant Garamond',serif;font-size:0.86rem;}
+
+/* Broadcast chain */
+.bc-chain{background:var(--mag-surface);border:1px solid var(--mag-border);padding:1.8rem 1.6rem;margin:2rem 0;}
+.bc-label{font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.25em;color:rgba(61,191,176,0.5);text-transform:uppercase;display:block;margin-bottom:1.2rem;}
+.bc-flow{display:flex;align-items:center;flex-wrap:wrap;gap:0.3rem;margin-bottom:1rem;}
+.bc-node{font-family:'Space Mono',monospace;font-size:0.6rem;color:rgba(200,230,225,0.65);background:rgba(61,191,176,0.08);border:1px solid rgba(61,191,176,0.2);padding:0.3rem 0.6rem;white-space:nowrap;}
+.bc-arrow{color:rgba(61,191,176,0.3);font-size:0.75rem;flex-shrink:0;}
+.bc-note{font-family:'Noto Serif JP',serif;font-size:0.78rem;color:rgba(200,230,225,0.4);line-height:1.7;}
+.bc-note.en{font-family:'Cormorant Garamond',serif;font-size:0.88rem;}
+
+/* Value list */
+.value-list{list-style:none;margin:1rem 0 1.5rem;display:flex;flex-direction:column;gap:0.5rem;}
+.value-list li{display:flex;align-items:baseline;gap:0.7rem;font-family:'Noto Serif JP',serif;font-size:0.87rem;line-height:1.8;color:rgba(200,230,225,0.65);padding:0.5rem 0.8rem;border-left:2px solid rgba(61,191,176,0.2);}
+.value-list li.en{font-family:'Cormorant Garamond',serif;font-size:0.97rem;}
+.value-list li::before{content:'—';color:rgba(61,191,176,0.4);font-size:0.7rem;flex-shrink:0;}
+
+/* Infographic */
+.infographic-wrap{margin:2.5rem 0;border:1px solid rgba(61,191,176,0.15);overflow:hidden;}
+.infographic-label{font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.25em;color:rgba(61,191,176,0.5);text-transform:uppercase;padding:0.6rem 1rem;background:rgba(61,191,176,0.05);border-bottom:1px solid rgba(61,191,176,0.1);}
+.infographic-wrap img{width:100%;height:auto;display:block;}
+
+/* VOL cross-reference */
+.vol-ref{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin:2rem 0;}
+.vref-item{background:var(--mag-surface);border:1px solid var(--mag-border);padding:0.9rem 1rem;}
+.vref-vol{font-family:'Space Mono',monospace;font-size:0.58rem;color:rgba(61,191,176,0.45);letter-spacing:0.15em;display:block;margin-bottom:0.3rem;}
+.vref-theme{font-family:'Noto Serif JP',serif;font-size:0.78rem;color:rgba(200,230,225,0.55);line-height:1.5;}
+.vref-theme.en{font-family:'Cormorant Garamond',serif;font-size:0.88rem;}
+
+/* Hashtag */
+.hashtag-wrap{margin-top:2.5rem;padding:1.2rem 1.4rem;background:rgba(61,191,176,0.04);border:1px solid rgba(61,191,176,0.1);}
+.hashtag-label{font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:rgba(61,191,176,0.4);text-transform:uppercase;margin-bottom:0.6rem;display:block;}
+.hashtag-text{font-family:'Space Mono',monospace;font-size:0.65rem;color:rgba(61,191,176,0.55);line-height:1.8;letter-spacing:0.05em;word-break:break-word;}
+
+/* Glossary */
+.glossary-wrap{margin-top:2rem;padding:1.4rem 1.6rem;background:rgba(61,191,176,0.04);border:1px solid rgba(61,191,176,0.1);}
+.glossary-head{font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.2em;color:rgba(61,191,176,0.45);text-transform:uppercase;margin-bottom:1rem;display:block;}
+.glossary-item{margin-bottom:0.7rem;}
+.glossary-item:last-child{margin-bottom:0;}
+
+.sdiv{width:3rem;height:1px;background:var(--cyan);margin:3rem 0;}
+.article-close{border-top:1px solid rgba(61,191,176,0.15);padding-top:3rem;margin-top:4rem;}
+.close-q{font-family:'Cormorant Garamond',serif;font-size:clamp(1.2rem,2.5vw,1.7rem);color:var(--cream);line-height:1.5;font-style:italic;margin-bottom:2rem;}
+.author-line{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;color:rgba(200,230,225,0.3);text-transform:uppercase;text-align:right;margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,0.05);}
+
+.back-strip{background:#050c0d;border-top:1px solid rgba(61,191,176,0.1);padding:2.5rem 4rem;display:flex;align-items:center;justify-content:space-between;}
+.back-link{display:flex;align-items:center;gap:0.6rem;font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;color:rgba(201,168,76,0.6);text-decoration:none;text-transform:uppercase;transition:color 0.3s;}
+.back-link:hover{color:var(--gold);}.back-link::before{content:'←';}
+.next-issue{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;color:rgba(200,230,225,0.2);text-transform:uppercase;}
+footer{background:var(--black);padding:2.5rem 4rem;display:flex;align-items:center;justify-content:space-between;}
+.fb{font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:0.95rem;letter-spacing:0.15em;}
+.fc{color:rgba(255,255,255,0.28);font-size:0.7rem;}
+
+@media(max-width:768px){
+  nav{padding:0.8rem 1.2rem;}
+  .article-hero{padding:6rem 1.5rem 3rem;}
+  .article-wrap{padding:3.5rem 1.5rem 5rem;}
+  .sources-grid{grid-template-columns:1fr;}
+  .obs-transition{grid-template-columns:1fr;}
+  .obs-center{display:none;}
+  .obs-side--left{margin-bottom:2px;}
+  .vol-ref{grid-template-columns:1fr;}
+  .bc-flow{gap:0.2rem;}
+  .back-strip{flex-direction:column;gap:1rem;text-align:center;padding:2rem 1.5rem;}
+  footer{flex-direction:column;gap:1rem;text-align:center;padding:2rem 1.5rem;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index_5wm.html" class="nav-logo">LINER NOTES CONSULTING</a>
+  <div class="nav-right">
+    <a href="blog_index.html" class="nav-back">
+      <span class="txt-ja">WEB MAGAZINE</span>
+      <span class="txt-en" style="display:none">WEB MAGAZINE</span>
+    </a>
+    <div class="lang-sw">
+      <button class="lbtn on" id="bjp" onclick="setLang('jp')">JP</button>
+      <button class="lbtn"    id="ben" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<header class="article-hero">
+  <div class="hero-inner">
+    <span class="mag-label">WEB MAGAZINE — VOL.6</span>
+    <span class="article-vol txt-ja">Netflix / AI / 知識グラフ / 放送インフラ</span>
+    <span class="article-vol txt-en" style="display:none">Netflix / AI / Knowledge Graph / Broadcast Infrastructure</span>
+    <h1 class="article-title-ja txt-ja">AIが理解できるシステムを、<br>あなたは持っているか？</h1>
+    <h1 class="article-title-en txt-en" style="display:none">Do You Have a System<br>That AI Can Truly Understand?</h1>
+    <p class="article-sub txt-ja">NetflixのKnowledge Graphが放送業界に突きつける問い</p>
+    <p class="article-sub-en txt-en" style="display:none">The Question Netflix's Knowledge Graph Poses to the Broadcast Industry</p>
+    <div class="article-meta">
+      <span class="meta-tag">Netflix</span>
+      <span class="meta-tag">Knowledge Graph</span>
+      <span class="meta-tag">Agentic AI</span>
+      <span class="meta-tag">Broadcasting</span>
+      <span class="meta-date">2026</span>
+    </div>
+  </div>
+</header>
+
+<main class="article-wrap">
+
+  <div class="article-lead">
+    <p class="txt-ja">Netflixの最新技術ブログを読んでいて、これは単なる運用ツールの話ではないと感じた。Netflixが発表した「Service Topology」は、一見するとサービス依存関係を可視化するマップだ。しかし本質はそこではない。彼らが構築しているのは、分散システム全体をリアルタイムで理解するための知識グラフ（Knowledge Graph）である。</p>
+    <p class="en txt-en" style="display:none">Reading Netflix's latest engineering blog, I felt this was more than just an operations tool story. Netflix's "Service Topology" looks at first glance like a map visualizing service dependencies. But the real point is deeper. What they're building is a Knowledge Graph — a foundation for understanding the entire distributed system in real time.</p>
+  </div>
+
+  <!-- Infographic -->
+  <div class="infographic-wrap">
+    <div class="infographic-label">
+      <span class="txt-ja">Netflixが作ったのは「知識グラフ」基盤</span>
+      <span class="txt-en" style="display:none">Why Netflix Built a "Knowledge Graph" Foundation</span>
+    </div>
+    <img src="netflix1.png" class="txt-ja" alt="Netflixが作ったのは「知識グラフ」基盤">
+    <img src="netflix1en.png" class="txt-en" style="display:none" alt="Why Netflix Built a Knowledge Graph Foundation">
+  </div>
+
+  <div class="sdiv"></div>
+
+  <!-- Section 1 -->
+  <div class="article-section">
+    <span class="section-num">Section 01</span>
+    <h2 class="section-heading txt-ja">断片的な情報では、全体像は見えない</h2>
+    <h2 class="section-heading en txt-en" style="display:none">Siloed Information Means the Full Picture Is Never Visible</h2>
+
+    <p class="body-p txt-ja">Netflixほどの規模になると、どのサービスがどのサービスに依存しているのか、障害の影響範囲はどこまで及ぶのか、根本原因はどこにあるのか――これらを人間が把握することは困難になる。</p>
+    <p class="body-p en txt-en" style="display:none">At Netflix's scale, it becomes impossible for humans to track which services depend on which, how far an outage's impact reaches, or where the root cause lies.</p>
+
+    <div class="obs-transition">
+      <div class="obs-side obs-side--left">
+        <span class="obs-label txt-ja">従来のObservability</span>
+        <span class="obs-label txt-en" style="display:none">Traditional Observability</span>
+        <div class="obs-item txt-ja">Metrics（指標）</div>
+        <div class="obs-item txt-ja">Logs（記録）</div>
+        <div class="obs-item txt-ja">Traces（追跡）</div>
+        <div class="obs-item en txt-en" style="display:none">Metrics</div>
+        <div class="obs-item en txt-en" style="display:none">Logs</div>
+        <div class="obs-item en txt-en" style="display:none">Traces</div>
+        <p style="font-family:'Space Mono',monospace;font-size:0.6rem;color:rgba(61,191,176,0.4);margin-top:0.8rem;">
+          <span class="txt-ja">→ 断片的な情報</span>
+          <span class="txt-en" style="display:none">→ Siloed information</span>
+        </p>
+      </div>
+      <div class="obs-center"><span class="obs-arrow">→</span></div>
+      <div class="obs-side obs-side--right">
+        <span class="obs-label txt-ja">AI時代の理解</span>
+        <span class="obs-label txt-en" style="display:none">AI-Era Understanding</span>
+        <div class="obs-item txt-ja">トポロジーを理解する</div>
+        <div class="obs-item txt-ja">異常を検出する</div>
+        <div class="obs-item txt-ja">原因を推定する</div>
+        <div class="obs-item txt-ja">復旧を提示・自動実行</div>
+        <div class="obs-item en txt-en" style="display:none">AI understands the topology</div>
+        <div class="obs-item en txt-en" style="display:none">Detects anomalies</div>
+        <div class="obs-item en txt-en" style="display:none">Identifies root cause</div>
+        <div class="obs-item en txt-en" style="display:none">Recommends and auto-remediates</div>
+        <p style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--cyan-light);margin-top:0.8rem;">
+          <span class="txt-ja">→ 観測から理解へ、自律運用へ</span>
+          <span class="txt-en" style="display:none">→ From observability to understanding to autonomy</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <span class="insight-icon">Key</span>
+      <p class="insight-text txt-ja"><strong style="color:var(--cyan-light)">断片的な情報では、全体像は見えない。</strong>これが従来のObservabilityの限界であり、NetflixがKnowledge Graphを構築した理由だ。</p>
+      <p class="insight-text en txt-en" style="display:none"><strong style="color:var(--cyan-light)">Siloed information means the full picture is never visible.</strong> This is the fundamental limitation of traditional observability — and why Netflix built a Knowledge Graph.</p>
+    </div>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="article-section">
+    <span class="section-num">Section 02</span>
+    <h2 class="section-heading txt-ja">Netflixのアプローチ：3つの情報源を統合する知識グラフ</h2>
+    <h2 class="section-heading en txt-en" style="display:none">Netflix's Approach: A Knowledge Graph Unifying Three Data Sources</h2>
+
+    <p class="body-p txt-ja">Netflixは以下の3つの情報源から独立したグラフを生成し、統合することで「システム全体の関係性」をリアルタイムに可視化している。</p>
+    <p class="body-p en txt-en" style="display:none">Netflix generates independent graphs from three data sources and integrates them to visualize the relationships across the entire system in real time.</p>
+
+    <div class="sources-grid">
+      <div class="src-item">
+        <span class="src-num">01</span>
+        <span class="src-name">eBPF Network Flow</span>
+        <span class="src-layer txt-ja">ネットワーク層</span>
+        <span class="src-layer txt-en" style="display:none">Network Layer</span>
+        <p class="src-desc txt-ja">通信の事実を取得。全ての接続をカバーし、ネットワーク上の依存関係を完全に把握する。</p>
+        <p class="src-desc en txt-en" style="display:none">Captures the truth of communication. Covers all connections for complete visibility of network dependencies.</p>
+      </div>
+      <div class="src-item">
+        <span class="src-num">02</span>
+        <span class="src-name">IPC Metrics</span>
+        <span class="src-layer txt-ja">アプリケーション層</span>
+        <span class="src-layer txt-en" style="display:none">Application Layer</span>
+        <p class="src-desc txt-ja">APIやエンドポイントの情報。アプリケーションの文脈でのサービス間通信を把握する。</p>
+        <p class="src-desc en txt-en" style="display:none">API endpoints and performance data. Captures inter-service communication from the application's perspective.</p>
+      </div>
+      <div class="src-item">
+        <span class="src-num">03</span>
+        <span class="src-name">Distributed Tracing</span>
+        <span class="src-layer txt-ja">リクエスト層</span>
+        <span class="src-layer txt-en" style="display:none">Request Layer</span>
+        <p class="src-desc txt-ja">実際のリクエスト経路と実行時の振る舞い。「実際に何が起きたか」を記録する。</p>
+        <p class="src-desc en txt-en" style="display:none">Real request paths and runtime behavior. Records what actually happened during execution.</p>
+      </div>
+    </div>
+
+    <p class="body-p txt-ja">特に興味深いのは、監視データを単に保存するのではなく、<strong style="color:var(--cyan-light)">サービス = ノード、依存関係 = エッジ</strong>としてGraph Databaseへ格納している点だ。これは「観測（Observability）」から「理解（Understanding）」へ移行しようとする試みだ。</p>
+    <p class="body-p en txt-en" style="display:none">What's particularly compelling is that rather than simply storing monitoring data, Netflix stores it in a Graph Database with <strong style="color:var(--cyan-light)">services as nodes and dependencies as edges.</strong> This is a deliberate move from "observability" to "understanding."</p>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="article-section">
+    <span class="section-num">Section 03</span>
+    <h2 class="section-heading txt-ja">「観測」から「理解」へ、そして「自律運用」へ</h2>
+    <h2 class="section-heading en txt-en" style="display:none">From "Observability" to "Understanding" to "Autonomous Operations"</h2>
+
+    <p class="body-p txt-ja">Netflixが作っているのは単なるトポロジーマップではない。<strong style="color:var(--cyan-light)">Agentic AI時代の運用基盤そのもの</strong>だ。</p>
+    <p class="body-p en txt-en" style="display:none">Netflix is not building a mere topology map. It is building <strong style="color:var(--cyan-light)">the operational foundation for the Agentic AI era.</strong></p>
+
+    <div class="insight-box">
+      <span class="insight-icon">Point</span>
+      <p class="insight-text txt-ja">観測から理解へ、そして自律運用へ。<br>人間のための理解、システムのための自律性。<br><strong style="color:var(--cyan-light)">Understanding for humans. Autonomy for systems.</strong></p>
+      <p class="insight-text en txt-en" style="display:none">From observability to understanding. From understanding to autonomous operations.<br><strong style="color:var(--cyan-light)">Understanding for humans. Autonomy for systems.</strong></p>
+    </div>
+  </div>
+
+  <!-- Section 4 -->
+  <div class="article-section">
+    <span class="section-num">Section 04</span>
+    <h2 class="section-heading txt-ja">放送業界への示唆：IP化の次に来るのは「知識グラフ化」</h2>
+    <h2 class="section-heading en txt-en" style="display:none">Implications for Broadcasting: After IP Migration Comes "Knowledge Graph Migration"</h2>
+
+    <p class="body-p txt-ja">この考え方は放送業界にも直接当てはまる。ST 2110によるIP化、TAGなどによるリアルタイム監視――そしてその次に来るのは<strong style="color:var(--cyan-light)">「システム全体の知識グラフ化」</strong>ではないだろうか。</p>
+    <p class="body-p en txt-en" style="display:none">This thinking applies directly to broadcasting. IP migration via ST 2110, real-time monitoring via TAG — and what comes next may be <strong style="color:var(--cyan-light)">"system-wide knowledge graph migration."</strong></p>
+
+    <div class="bc-chain">
+      <span class="bc-label txt-ja">ライブ制作・配信の依存関係（例）</span>
+      <span class="bc-label txt-en" style="display:none">Live Production and Delivery Dependency Chain (Example)</span>
+      <div class="bc-flow">
+        <div class="bc-node txt-ja">カメラ</div>
+        <div class="bc-node txt-en" style="display:none">Camera</div>
+        <div class="bc-arrow">→</div>
+        <div class="bc-node txt-ja">IP Gateway</div>
+        <div class="bc-node txt-en" style="display:none">IP Gateway</div>
+        <div class="bc-arrow">→</div>
+        <div class="bc-node">ST 2110</div>
+        <div class="bc-arrow">→</div>
+        <div class="bc-node txt-ja">スイッチャー</div>
+        <div class="bc-node txt-en" style="display:none">Production Switch</div>
+        <div class="bc-arrow">→</div>
+        <div class="bc-node txt-ja">グラフィックス</div>
+        <div class="bc-node txt-en" style="display:none">Graphics</div>
+        <div class="bc-arrow">→</div>
+        <div class="bc-node txt-ja">リプレイ</div>
+        <div class="bc-node txt-en" style="display:none">Replay</div>
+        <div class="bc-arrow">→</div>
+        <div class="bc-node txt-ja">エンコーダー</div>
+        <div class="bc-node txt-en" style="display:none">Encoder</div>
+        <div class="bc-arrow">→</div>
+        <div class="bc-node">CDN</div>
+      </div>
+      <p class="bc-note txt-ja">複雑な依存関係をグラフ化することで、AIが構造を理解し、最適な判断を支援する</p>
+      <p class="bc-note en txt-en" style="display:none">By graphing complex dependencies, AI can understand the structure and support optimal decision-making</p>
+    </div>
+
+    <p class="body-p txt-ja">AIがこの構造を理解できるようになれば、以下が現実的になる。</p>
+    <p class="body-p en txt-en" style="display:none">When AI can understand this structure, the following become realistic.</p>
+
+    <ul class="value-list">
+      <li class="txt-ja">障害原因の自動推定</li>
+      <li class="txt-ja">影響範囲の即時分析</li>
+      <li class="txt-ja">復旧手順の自動提案</li>
+      <li class="txt-ja">将来の予測と自動運用</li>
+      <li class="en txt-en" style="display:none">Automated root cause analysis</li>
+      <li class="en txt-en" style="display:none">Real-time impact analysis</li>
+      <li class="en txt-en" style="display:none">Automated remediation suggestions</li>
+      <li class="en txt-en" style="display:none">Predictive and autonomous operations</li>
+    </ul>
+  </div>
+
+  <!-- Section 5 -->
+  <div class="article-section">
+    <span class="section-num">Section 05</span>
+    <h2 class="section-heading txt-ja">VOL.1からVOL.6へ：すべてが一本の線でつながる</h2>
+    <h2 class="section-heading en txt-en" style="display:none">From VOL.1 to VOL.6: Everything Connects in a Single Line</h2>
+
+    <p class="body-p txt-ja">本誌VOL.3で論じたTrusted Media Intelligence Layerと接続すると、この知識グラフはまさにその「基盤層」に相当する。AIが組織知識を学習する前提として、まずシステム全体の構造をAIが理解できる形でモデル化することが必要なのだ。</p>
+    <p class="body-p en txt-en" style="display:none">Connecting this to the Trusted Media Intelligence Layer concept explored in VOL.3, the knowledge graph corresponds precisely to its "foundation layer." Before AI can learn organizational knowledge, the entire system structure must first be modeled in a form AI can understand.</p>
+
+    <div class="vol-ref">
+      <div class="vref-item">
+        <span class="vref-vol">VOL.1</span>
+        <p class="vref-theme txt-ja">AIをつなぐオーケストレーション</p>
+        <p class="vref-theme en txt-en" style="display:none">AI orchestration and integration</p>
+      </div>
+      <div class="vref-item">
+        <span class="vref-vol">VOL.3</span>
+        <p class="vref-theme txt-ja">組織知能の継承・Trusted Media Intelligence Layer</p>
+        <p class="vref-theme en txt-en" style="display:none">Institutional knowledge · Trusted Media Intelligence Layer</p>
+      </div>
+      <div class="vref-item">
+        <span class="vref-vol">VOL.4</span>
+        <p class="vref-theme txt-ja">意味的検索・コンテンツの理解</p>
+        <p class="vref-theme en txt-en" style="display:none">Semantic search · Content understanding</p>
+      </div>
+      <div class="vref-item">
+        <span class="vref-vol">VOL.5</span>
+        <p class="vref-theme txt-ja">ワークフロー統合・AIネイティブ化</p>
+        <p class="vref-theme en txt-en" style="display:none">Workflow integration · AI-native transformation</p>
+      </div>
+      <div class="vref-item">
+        <span class="vref-vol">VOL.6</span>
+        <p class="vref-theme txt-ja" style="color:var(--cyan-light)">AIが理解できるシステムモデル</p>
+        <p class="vref-theme en txt-en" style="display:none;color:var(--cyan-light)">System models AI can truly understand</p>
+      </div>
+      <div class="vref-item" style="background:rgba(61,191,176,0.06);border-color:rgba(61,191,176,0.2);">
+        <span class="vref-vol" style="color:var(--cyan-light)">→ 基盤</span>
+        <p class="vref-theme txt-ja" style="color:rgba(61,191,176,0.6)">Knowledge Graph がすべてを支える</p>
+        <p class="vref-theme en txt-en" style="display:none;color:rgba(61,191,176,0.6)">Knowledge Graph underpins everything</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sdiv"></div>
+
+  <!-- Closing -->
+  <div class="article-close">
+    <p class="close-q txt-ja">「AIをどう導入するかより先に、AIが理解できるシステムを持っているか。」</p>
+    <p class="close-q txt-en" style="display:none">"Before asking how to deploy AI — do you have a system that AI can truly understand?"</p>
+
+    <p class="body-p txt-ja">多くの放送局・制作会社は今、「どのAIを導入するか」を議論している。しかしNetflixの事例が示すのは、その前に問うべきことがあるということだ。自社のシステムがAIにとって「理解可能な構造」になっているかを問うべきだ。<strong style="color:var(--cyan-light)">知識グラフなき場所に、Agentic AIは根を張れない。</strong></p>
+    <p class="body-p en txt-en" style="display:none">Most broadcasters and production companies are currently debating "which AI to deploy." But what Netflix's example shows is that there's a prior question to answer. Ask whether your systems are structured in a way that AI can truly understand. <strong style="color:var(--cyan-light)">Without a knowledge graph, Agentic AI has no foundation to build on.</strong></p>
+
+    <p class="body-p txt-ja">Netflixが構築しているのは、AI時代の運用インフラの雛形だ。放送業界において、IP化は「映像をデータとして扱う」基盤だった。次の段階は、<strong style="color:var(--cyan-light)">「システム全体をAIが理解できる知識として扱う」</strong>基盤の構築だ。</p>
+    <p class="body-p en txt-en" style="display:none">What Netflix is building is a blueprint for operational infrastructure in the AI era. In broadcasting, IP migration created the foundation for "treating video as data." The next stage is building the foundation for <strong style="color:var(--cyan-light)">"treating the entire system as knowledge that AI can understand."</strong></p>
+
+    <!-- Hashtag -->
+    <div class="hashtag-wrap">
+      <span class="hashtag-label">Tags</span>
+      <div class="hashtag-text">#Netflix #Observability #ServiceTopology #KnowledgeGraph #AgenticAI #MediaTechnology #BroadcastEngineering #ST2110 #IPMX #TAGVideoSystems #MAM #DigitalTransformation</div>
+    </div>
+
+    <!-- Glossary -->
+    <div class="glossary-wrap">
+      <span class="glossary-head txt-ja">用語解説 / Glossary</span>
+      <span class="glossary-head txt-en" style="display:none">Glossary</span>
+      <div class="glossary-item">
+        <p class="body-p txt-ja" style="font-size:0.82rem;line-height:1.9;margin-bottom:0">※1 <strong style="color:rgba(200,230,225,0.7)">Knowledge Graph（知識グラフ）</strong> — ノード（実体）とエッジ（関係）でデータを表現するデータベース構造。データ間の「関係性」を構造化して格納することで、AIが文脈を理解しやすくなる。</p>
+        <p class="body-p en txt-en" style="display:none;font-size:0.88rem;line-height:1.9;margin-bottom:0">※1 <strong style="color:rgba(200,230,225,0.7)">Knowledge Graph</strong> — A database structure representing data as nodes (entities) and edges (relationships). By structuring "relationships" between data, it enables AI to understand context more effectively.</p>
+      </div>
+      <div class="glossary-item">
+        <p class="body-p txt-ja" style="font-size:0.82rem;line-height:1.9;margin-bottom:0">※2 <strong style="color:rgba(200,230,225,0.7)">Observability（可観測性）</strong> — システムの内部状態を外部から観測できる度合い。Metrics・Logs・Tracesの3要素で構成される。近年はこれだけでは不十分として「Understanding（理解）」への移行が議論されている。</p>
+        <p class="body-p en txt-en" style="display:none;font-size:0.88rem;line-height:1.9;margin-bottom:0">※2 <strong style="color:rgba(200,230,225,0.7)">Observability</strong> — The degree to which a system's internal state can be observed from the outside. Composed of three elements: Metrics, Logs, and Traces. Recently, moving beyond observability to "Understanding" has been increasingly discussed.</p>
+      </div>
+      <div class="glossary-item">
+        <p class="body-p txt-ja" style="font-size:0.82rem;line-height:1.9;margin-bottom:0">※3 <strong style="color:rgba(200,230,225,0.7)">eBPF（extended Berkeley Packet Filter）</strong> — Linuxカーネル内で安全にプログラムを実行できる技術。ネットワークトラフィックやシステムコールをリアルタイムに取得できる。Netflixはこれでネットワーク層の通信を全捕捉している。</p>
+        <p class="body-p en txt-en" style="display:none;font-size:0.88rem;line-height:1.9;margin-bottom:0">※3 <strong style="color:rgba(200,230,225,0.7)">eBPF (extended Berkeley Packet Filter)</strong> — Technology enabling safe program execution inside the Linux kernel. Enables real-time capture of network traffic and system calls. Netflix uses this to capture all network-layer communications.</p>
+      </div>
+      <div class="glossary-item">
+        <p class="body-p txt-ja" style="font-size:0.82rem;line-height:1.9;margin-bottom:0">※4 <strong style="color:rgba(200,230,225,0.7)">Distributed Tracing（分散トレーシング）</strong> — マイクロサービス環境で、一つのリクエストが複数のサービスをまたがる際の経路を追跡する技術。「実際に何が起きたか」を記録する。</p>
+        <p class="body-p en txt-en" style="display:none;font-size:0.88rem;line-height:1.9;margin-bottom:0">※4 <strong style="color:rgba(200,230,225,0.7)">Distributed Tracing</strong> — Technology for tracking the path of a single request across multiple services in a microservices environment. Records "what actually happened."</p>
+      </div>
+      <div class="glossary-item">
+        <p class="body-p txt-ja" style="font-size:0.82rem;line-height:1.9;margin-bottom:0">※5 <strong style="color:rgba(200,230,225,0.7)">Agentic AI</strong> — 人間の指示を待たず、自律的に判断・実行・改善を繰り返すAI。単なる回答生成AIと異なり、ツール操作・タスク実行・環境への働きかけができる。VOL.1のAgent概念の発展形。</p>
+        <p class="body-p en txt-en" style="display:none;font-size:0.88rem;line-height:1.9;margin-bottom:0">※5 <strong style="color:rgba(200,230,225,0.7)">Agentic AI</strong> — AI that autonomously judges, executes, and iterates without waiting for human instructions. Unlike simple response-generation AI, it can operate tools, execute tasks, and act on its environment. An evolution of the Agent concept introduced in VOL.1.</p>
+      </div>
+      <div class="glossary-item">
+        <p class="body-p txt-ja" style="font-size:0.82rem;line-height:1.9;margin-bottom:0">※6 <strong style="color:rgba(200,230,225,0.7)">ST 2110</strong> — 映像・音声・データを別々のIPパケットとして送受信するための国際標準規格。VOL.3で詳述。</p>
+        <p class="body-p en txt-en" style="display:none;font-size:0.88rem;line-height:1.9;margin-bottom:0">※6 <strong style="color:rgba(200,230,225,0.7)">ST 2110</strong> — International standard for sending video, audio, and data as separate IP packets. Detailed in VOL.3.</p>
+      </div>
+      <div class="glossary-item">
+        <p class="body-p txt-ja" style="font-size:0.82rem;line-height:1.9;margin-bottom:0">※7 <strong style="color:rgba(200,230,225,0.7)">TAGビデオシステムズ</strong> — 放送向けリアルタイム監視ソリューションのベンダー。IP放送環境での信号品質監視・プローブ管理などを提供。</p>
+        <p class="body-p en txt-en" style="display:none;font-size:0.88rem;line-height:1.9;margin-bottom:0">※7 <strong style="color:rgba(200,230,225,0.7)">TAG Video Systems</strong> — Vendor of real-time monitoring solutions for broadcasting. Provides signal quality monitoring and probe management in IP broadcast environments.</p>
+      </div>
+    </div>
+
+    <div class="author-line">Liner Notes Consulting — Web Magazine Vol.6 — 2026</div>
+  </div>
+
+</main>
+
+<div class="back-strip">
+  <a href="blog_index.html" class="back-link">
+    <span class="txt-ja">WEB MAGAZINEに戻る</span>
+    <span class="txt-en" style="display:none">Back to Web Magazine</span>
+  </a>
+  <span class="next-issue txt-ja">VOL.7 近日公開予定</span>
+  <span class="next-issue txt-en" style="display:none">VOL.7 — Coming Soon</span>
+</div>
+
+<footer>
+  <div class="fb">LINER NOTES CONSULTING</div>
+  <div class="fc">Copyright © 2026 前田 康夫 (Maeda Yasuo) / Liner Notes Consulting. All rights reserved.</div>
+</footer>
+
+<script>
+function setLang(lang){
+  document.querySelectorAll('.txt-ja').forEach(function(el){el.style.display=lang==='jp'?'':'none';});
+  document.querySelectorAll('.txt-en').forEach(function(el){el.style.display=lang==='en'?'':'none';});
+  document.getElementById('bjp').className='lbtn'+(lang==='jp'?' on':'');
+  document.getElementById('ben').className='lbtn'+(lang==='en'?' on':'');
+  document.documentElement.lang=lang==='jp'?'ja':'en';
+}
+</script>
+</body>
+</html>
