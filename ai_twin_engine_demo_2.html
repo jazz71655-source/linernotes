@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Professional Twin — Engine Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Noto+Serif+JP:wght@300;400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090d;--surface:#0e1117;--surface2:#141820;
+  --border:rgba(120,180,255,0.12);--border2:rgba(120,180,255,0.06);
+  --accent:#4a9eff;--accent-dim:rgba(74,158,255,0.12);
+  --gold:#c9a84c;--gold-dim:rgba(201,168,76,0.1);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.1);
+  --rose:#f87171;--rose-dim:rgba(248,113,113,0.1);
+  --cream:#f0ece0;--text:rgba(220,230,248,0.85);--text-dim:rgba(220,230,248,0.42);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Serif JP',serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ── SCREEN 1: INPUT ── */
+#s-input{
+  align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 70% 50% at 50% 30%,rgba(74,158,255,0.05) 0%,transparent 70%),var(--bg);
+  padding:2rem;
+}
+.input-card{max-width:680px;width:100%;}
+.input-badge{
+  font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.3em;
+  text-transform:uppercase;color:var(--accent);border:1px solid rgba(74,158,255,0.3);
+  padding:0.3rem 0.9rem;display:inline-block;margin-bottom:1.8rem;
+}
+.input-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.8rem,4vw,2.8rem);font-weight:300;color:var(--cream);
+  line-height:1.2;margin-bottom:0.6rem;
+}
+.input-title span{color:var(--accent);font-style:italic;}
+.input-sub{
+  font-family:'Noto Serif JP',serif;font-size:0.85rem;
+  color:var(--text-dim);line-height:1.9;margin-bottom:2rem;
+}
+.field-label{
+  font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;
+  text-transform:uppercase;color:rgba(74,158,255,0.6);display:block;margin-bottom:0.5rem;
+}
+.field-textarea{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);font-family:'Noto Serif JP',serif;font-size:0.85rem;
+  line-height:1.8;padding:1rem;resize:vertical;min-height:160px;
+  outline:none;transition:border 0.25s;margin-bottom:1.5rem;
+}
+.field-textarea:focus{border-color:rgba(74,158,255,0.4);}
+.field-textarea::placeholder{color:var(--text-dim);}
+.start-btn{
+  width:100%;background:var(--accent);color:#000;border:none;cursor:pointer;
+  font-family:'Space Mono',monospace;font-size:0.75rem;font-weight:700;
+  letter-spacing:0.2em;text-transform:uppercase;padding:1rem;
+  transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:0.8rem;
+}
+.start-btn:hover{background:#7ab8ff;}
+.start-btn::after{content:'→';}
+.demo-note{
+  font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--text-dim);
+  letter-spacing:0.1em;margin-top:1rem;text-align:center;
+  padding:0.8rem;border:1px solid var(--border2);
+}
+.lang-sw{display:flex;border:1px solid rgba(74,158,255,0.4);overflow:hidden;border-radius:2px;margin-bottom:1.5rem;width:fit-content;}
+.lbtn{padding:0.3rem 0.9rem;background:transparent;border:none;color:rgba(220,230,248,0.45);font-size:0.68rem;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:0.1em;transition:all 0.25s;}
+.lbtn.on{background:var(--accent);color:#000;font-weight:700;}
+.upload-area{border:1px dashed rgba(74,158,255,0.3);padding:1.2rem;text-align:center;margin-bottom:0.8rem;cursor:pointer;transition:all 0.25s;background:rgba(74,158,255,0.03);}
+.upload-area:hover{border-color:rgba(74,158,255,0.6);background:rgba(74,158,255,0.06);}
+.upload-label{font-family:'Space Mono',monospace;font-size:0.65rem;color:rgba(74,158,255,0.6);letter-spacing:0.12em;display:block;margin-bottom:0.3rem;}
+.upload-sub{font-family:'Noto Serif JP',serif;font-size:0.75rem;color:var(--text-dim);}
+.or-divider{display:flex;align-items:center;gap:0.8rem;margin-bottom:0.8rem;}
+.or-line{flex:1;height:1px;background:rgba(255,255,255,0.08);}
+.or-text{font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--text-dim);letter-spacing:0.15em;}
+
+/* ── SCREEN 2: INTERVIEW ── */
+#s-interview{flex-direction:column;}
+.iview-header{
+  padding:1rem 2rem;background:rgba(7,9,13,0.97);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;
+  position:sticky;top:0;z-index:10;
+}
+.iview-logo{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);}
+.iview-meta{display:flex;align-items:center;gap:1.2rem;}
+.engine-badge{
+  font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.15em;
+  padding:0.2rem 0.6rem;border:1px solid rgba(74,222,128,0.3);color:var(--green);
+}
+.pdots{display:flex;gap:0.3rem;}
+.pd{width:6px;height:6px;border-radius:50%;background:rgba(74,158,255,0.2);transition:all 0.4s;}
+.pd.done{background:var(--green);}
+.pd.active{background:var(--accent);box-shadow:0 0 8px var(--accent);}
+.qlabel{font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--text-dim);}
+
+/* Split layout */
+.split{flex:1;display:grid;grid-template-columns:1fr 380px;min-height:0;overflow:hidden;}
+.chat-col{display:flex;flex-direction:column;border-right:1px solid var(--border);}
+.graph-col{overflow-y:auto;background:var(--surface);padding:1.2rem;}
+
+.chat-area{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1.2rem;}
+.msg{display:flex;gap:0.8rem;animation:fadeUp 0.4s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg-ai{align-items:flex-start;}
+.msg-user{align-items:flex-start;flex-direction:row-reverse;}
+.avatar{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-size:0.55rem;font-weight:700;flex-shrink:0;
+}
+.msg-ai .avatar{background:var(--accent-dim);border:1px solid rgba(74,158,255,0.3);color:var(--accent);}
+.msg-user .avatar{background:var(--gold-dim);border:1px solid rgba(201,168,76,0.3);color:var(--gold);}
+.bubble{max-width:85%;padding:0.9rem 1.1rem;font-size:0.85rem;line-height:1.9;}
+.msg-ai .bubble{background:var(--surface2);border:1px solid var(--border);border-top:2px solid var(--accent);}
+.msg-user .bubble{background:var(--gold-dim);border:1px solid rgba(201,168,76,0.2);text-align:right;}
+
+/* Empathy tag */
+.empathy-tag{
+  display:inline-block;font-family:'Space Mono',monospace;
+  font-size:0.52rem;letter-spacing:0.1em;padding:0.15rem 0.45rem;
+  background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);
+  color:var(--green);margin-bottom:0.4rem;
+}
+
+.typing-ind{display:flex;gap:4px;align-items:center;padding:0.3rem 0;}
+.tdot{
+  width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:0.4;
+  animation:tb 1.2s infinite;
+}
+.tdot:nth-child(2){animation-delay:0.2s;}
+.tdot:nth-child(3){animation-delay:0.4s;}
+@keyframes tb{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-5px);opacity:1}}
+
+.input-row{
+  padding:1rem 1.5rem;background:rgba(7,9,13,0.97);
+  border-top:1px solid var(--border);display:flex;gap:0.6rem;align-items:flex-end;
+}
+.chat-in{
+  flex:1;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);font-family:'Noto Serif JP',serif;font-size:0.85rem;
+  padding:0.7rem 0.9rem;resize:none;min-height:40px;max-height:100px;
+  line-height:1.6;outline:none;transition:border 0.25s;
+}
+.chat-in:focus{border-color:rgba(74,158,255,0.4);}
+.chat-in::placeholder{color:var(--text-dim);}
+.send-b{
+  background:var(--accent);color:#000;border:none;cursor:pointer;
+  font-family:'Space Mono',monospace;font-size:0.62rem;font-weight:700;
+  padding:0.7rem 1rem;transition:all 0.2s;white-space:nowrap;
+}
+.send-b:hover{background:#7ab8ff;}
+.send-b:disabled{background:rgba(74,158,255,0.3);color:rgba(0,0,0,0.5);cursor:default;}
+
+/* Graph panel */
+.graph-title{
+  font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.25em;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:1rem;
+  padding-bottom:0.6rem;border-bottom:1px solid var(--border);
+}
+.graph-section{margin-bottom:1.2rem;}
+.gs-label{
+  font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;
+  text-transform:uppercase;margin-bottom:0.5rem;display:block;
+}
+.kg .gs-label{color:rgba(74,158,255,0.6);}
+.eg .gs-label{color:rgba(74,222,128,0.6);}
+.dg .gs-label{color:rgba(201,168,76,0.6);}
+.node-list{display:flex;flex-direction:column;gap:2px;}
+.node-item{
+  display:flex;align-items:center;gap:0.5rem;
+  padding:0.4rem 0.6rem;font-family:'Space Mono',monospace;font-size:0.62rem;
+  animation:fadeUp 0.5s ease;
+}
+.kg .node-item{background:var(--accent-dim);border-left:2px solid var(--accent);color:rgba(220,230,248,0.75);}
+.eg .node-item{background:var(--green-dim);border-left:2px solid var(--green);color:rgba(220,230,248,0.75);}
+.dg .node-item{background:var(--gold-dim);border-left:2px solid var(--gold);color:rgba(220,230,248,0.75);}
+.ev-badge{
+  font-size:0.5rem;padding:0.1rem 0.35rem;border-radius:2px;flex-shrink:0;
+}
+.ev-confirmed{background:rgba(74,222,128,0.2);color:var(--green);}
+.ev-claimed{background:rgba(201,168,76,0.2);color:var(--gold);}
+.ev-inferred{background:rgba(248,113,113,0.2);color:var(--rose);}
+
+/* ── SCREEN 3: TWIN ── */
+#s-twin{
+  align-items:center;
+  background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(74,222,128,0.04) 0%,transparent 60%),var(--bg);
+  padding:4rem 2rem;
+}
+.twin-wrap{max-width:820px;width:100%;}
+.twin-hd{margin-bottom:2.5rem;}
+.twin-ey{
+  font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.35em;
+  text-transform:uppercase;color:var(--green);display:flex;align-items:center;gap:0.6rem;
+  margin-bottom:0.7rem;
+}
+.twin-ey::before{content:'';display:inline-block;width:1.5rem;height:1px;background:var(--green);}
+.twin-nm{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,4vw,2.6rem);font-weight:300;color:var(--cream);margin-bottom:0.3rem;}
+.twin-tl{font-family:'Noto Serif JP',serif;font-size:0.85rem;color:var(--text-dim);line-height:1.8;}
+
+.twin-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:2px;}
+.tc{background:var(--surface);border:1px solid var(--border);padding:1.4rem 1.2rem;}
+.tc-full{grid-column:1/-1;}
+.tc-blue{border-top:2px solid var(--accent);}
+.tc-green{border-top:2px solid var(--green);}
+.tc-gold{border-top:2px solid var(--gold);}
+.tc-lbl{
+  font-family:'Space Mono',monospace;font-size:0.56rem;letter-spacing:0.22em;
+  text-transform:uppercase;display:block;margin-bottom:0.8rem;
+}
+.tc-blue .tc-lbl{color:rgba(74,158,255,0.6);}
+.tc-green .tc-lbl{color:rgba(74,222,128,0.6);}
+.tc-gold .tc-lbl{color:rgba(201,168,76,0.6);}
+
+.tag-row{display:flex;flex-wrap:wrap;gap:0.35rem;}
+.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.06em;padding:0.25rem 0.6rem;}
+.tag-blue{background:var(--accent-dim);border:1px solid rgba(74,158,255,0.2);color:var(--accent);}
+.tag-green{background:var(--green-dim);border:1px solid rgba(74,222,128,0.2);color:var(--green);}
+.tag-gold{background:var(--gold-dim);border:1px solid rgba(201,168,76,0.2);color:var(--gold);}
+
+.decision-flow{display:flex;flex-direction:column;gap:2px;}
+.df-item{
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0.4rem 0.8rem;
+  font-family:'Space Mono',monospace;font-size:0.62rem;color:rgba(220,230,248,0.65);
+  background:var(--gold-dim);border-left:2px solid rgba(201,168,76,0.4);
+}
+.df-arrow{color:rgba(201,168,76,0.4);flex-shrink:0;}
+
+.proposal{
+  font-family:'Noto Serif JP',serif;font-size:0.87rem;line-height:2.1;
+  color:var(--text);border-left:2px solid var(--gold);padding-left:1.1rem;
+}
+
+.coach-msg{
+  background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.15);
+  border-left:3px solid var(--green);padding:1.1rem 1.3rem;margin-top:1.5rem;
+}
+.coach-lbl{
+  font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;
+  text-transform:uppercase;color:var(--green);display:block;margin-bottom:0.6rem;
+}
+.coach-text{font-family:'Noto Serif JP',serif;font-size:0.84rem;line-height:1.9;color:rgba(220,230,248,0.75);}
+
+.twin-cta{display:flex;gap:0.8rem;margin-top:2rem;flex-wrap:wrap;}
+.cta-p{background:var(--accent);color:#000;border:none;cursor:pointer;font-family:'Space Mono',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem 1.6rem;transition:all 0.3s;}
+.cta-p:hover{background:#7ab8ff;}
+.cta-s{background:transparent;color:var(--accent);border:1px solid rgba(74,158,255,0.4);cursor:pointer;font-family:'Space Mono',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem 1.6rem;transition:all 0.3s;}
+.cta-s:hover{border-color:var(--accent);}
+
+@media(max-width:768px){
+  .split{grid-template-columns:1fr;}
+  .graph-col{display:none;}
+  .twin-grid{grid-template-columns:1fr;}
+  #s-twin{padding:3rem 1rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SCREEN 1: INPUT ══ -->
+<div id="s-input" class="screen active">
+  <div class="input-card">
+    <span class="input-badge">AI Twin Engine — Mock Demo v2</span>
+
+    <!-- JP/EN切り替え -->
+    <div class="lang-sw">
+      <button class="lbtn on" id="bjp" onclick="setLang('jp')">日本語</button>
+      <button class="lbtn" id="ben" onclick="setLang('en')">English</button>
+    </div>
+
+    <h1 class="input-title">
+      <span class="txt-ja">職歴を入力して<br><span>Twinを生成する</span></span>
+      <span class="txt-en" style="display:none">Enter Your Career<br><span>to Generate Your Twin</span></span>
+    </h1>
+    <p class="input-sub">
+      <span class="txt-ja">あなたの職歴・実績を入力してください。AIが共感エンジンで深掘りし、Knowledge Graph・Experience Graph・Decision Graphを構築します。</span>
+      <span class="txt-en" style="display:none">Enter your career history. AI will explore deeply using the empathy engine and build your Knowledge, Experience, and Decision Graphs.</span>
+    </p>
+
+    <!-- 履歴書アップロード -->
+    <div class="upload-area" onclick="document.getElementById('resume-file').click()">
+      <input type="file" id="resume-file" accept=".txt,.pdf,.doc,.docx" style="display:none" onchange="handleFileUpload(event)">
+      <span class="upload-label" id="upload-label">
+        <span class="txt-ja">📄 履歴書・職務経歴書をアップロード</span>
+        <span class="txt-en" style="display:none">📄 Upload Resume / CV</span>
+      </span>
+      <p class="upload-sub">
+        <span class="txt-ja">TXT / PDF / Word に対応（モック：TXTのみ読み込み）</span>
+        <span class="txt-en" style="display:none">TXT / PDF / Word supported (Mock: TXT only)</span>
+      </p>
+    </div>
+
+    <div class="or-divider">
+      <div class="or-line"></div>
+      <span class="or-text">
+        <span class="txt-ja">または直接入力</span>
+        <span class="txt-en" style="display:none">or type directly</span>
+      </span>
+      <div class="or-line"></div>
+    </div>
+
+    <label class="field-label">
+      <span class="txt-ja">職歴・実績テキスト</span>
+      <span class="txt-en" style="display:none">Career History & Achievements</span>
+    </label>
+    <textarea class="field-textarea" id="resume-input"
+      placeholder="例：ソリューションアーキテクトとして映像制作市場向けソフトウェアの事業立ち上げを担当。KAIROS事業を立ち上げ主力事業化。AIを活用したWebアプリ開発・ブログ執筆・ピッチデッキ作成を独力で実施。"></textarea>
+
+    <button class="start-btn" onclick="startInterview()">
+      <span class="txt-ja">AI面接を開始する</span>
+      <span class="txt-en" style="display:none">Start AI Interview</span>
+    </button>
+
+    <div class="demo-note">
+      <span class="txt-ja">★ モックデモ：Claude Sonnetが生成するであろう質問フローを設計済み<br>共感エンジン（フロント）× 証拠収集（バック）の2層設計を体験できます</span>
+      <span class="txt-en" style="display:none">★ Mock Demo: Question flow designed as Claude Sonnet would generate<br>2-layer design: Empathy Engine (front) × Evidence Collection (back)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2: INTERVIEW ══ -->
+<div id="s-interview" class="screen">
+  <div class="iview-header">
+    <span class="iview-logo">AI Twin Engine</span>
+    <div class="iview-meta">
+      <span class="engine-badge txt-ja">共感エンジン稼働中</span>
+      <span class="engine-badge txt-en" style="display:none">Empathy Engine Active</span>
+      <div class="pdots" id="pdots"></div>
+      <span class="qlabel" id="qlabel">Q 1 / 7</span>
+    </div>
+  </div>
+
+  <div class="split">
+    <!-- Chat -->
+    <div class="chat-col">
+      <div class="chat-area" id="chat-area"></div>
+      <div class="input-row">
+        <textarea class="chat-in" id="chat-in" placeholder="回答を入力（Enterで送信）" rows="1" onkeydown="handleKey(event)"></textarea>
+        <button class="send-b" id="send-b" onclick="send()">送信</button>
+      </div>
+    </div>
+
+    <!-- Knowledge Graph Panel -->
+    <div class="graph-col">
+      <div class="graph-title">Live Knowledge Graph</div>
+
+      <div class="graph-section kg">
+        <span class="gs-label">Knowledge Graph</span>
+        <div class="node-list" id="kg-nodes"></div>
+      </div>
+
+      <div class="graph-section eg">
+        <span class="gs-label">Experience Graph</span>
+        <div class="node-list" id="eg-nodes"></div>
+      </div>
+
+      <div class="graph-section dg">
+        <span class="gs-label">Decision Graph</span>
+        <div class="node-list" id="dg-nodes"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3: TWIN ══ -->
+<div id="s-twin" class="screen">
+  <div class="twin-wrap">
+    <div class="twin-hd">
+      <span class="twin-ey">Professional Twin — Generated</span>
+      <h2 class="twin-nm" id="twin-name">前田 康夫 / Yasuo Maeda</h2>
+      <p class="twin-tl">Solution Architect → AI-Native Entrepreneur</p>
+    </div>
+
+    <!-- Assessment Result -->
+    <div class="tc tc-blue tc-full" style="margin-bottom:2px;">
+      <span class="tc-lbl">Psychological Assessment — Big Five × RIASEC × キャリアアンカー</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(74,158,255,0.5);letter-spacing:0.15em;margin-bottom:0.5rem;">BIG FIVE</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--text-dim);">
+              <span>開放性</span><span style="color:var(--accent)">92%</span>
+            </div>
+            <div style="height:3px;background:rgba(255,255,255,0.06);"><div style="height:100%;width:92%;background:var(--accent);"></div></div>
+            <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--text-dim);">
+              <span>誠実性</span><span style="color:var(--accent)">85%</span>
+            </div>
+            <div style="height:3px;background:rgba(255,255,255,0.06);"><div style="height:100%;width:85%;background:var(--accent);"></div></div>
+            <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--text-dim);">
+              <span>外向性</span><span style="color:var(--accent)">78%</span>
+            </div>
+            <div style="height:3px;background:rgba(255,255,255,0.06);"><div style="height:100%;width:78%;background:var(--accent);"></div></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(74,222,128,0.5);letter-spacing:0.15em;margin-bottom:0.5rem;">RIASEC</div>
+          <div class="tag-row">
+            <span class="tag tag-green" style="font-size:0.58rem;">E：Enterprising</span>
+            <span class="tag tag-green" style="font-size:0.58rem;">I：Investigative</span>
+            <span class="tag tag-green" style="font-size:0.58rem;">A：Artistic</span>
+          </div>
+          <div style="font-family:'Noto Serif JP',serif;font-size:0.75rem;color:var(--text-dim);margin-top:0.5rem;line-height:1.7;">
+            起業家型×調査型の複合。新市場を見つけ、データで証明し、説得して形にする。
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(201,168,76,0.5);letter-spacing:0.15em;margin-bottom:0.5rem;">キャリアアンカー</div>
+          <div class="tag-row">
+            <span class="tag tag-gold" style="font-size:0.58rem;">起業家精神</span>
+            <span class="tag tag-gold" style="font-size:0.58rem;">挑戦</span>
+            <span class="tag tag-gold" style="font-size:0.58rem;">自律性</span>
+          </div>
+          <div style="font-family:'Noto Serif JP',serif;font-size:0.75rem;color:var(--text-dim);margin-top:0.5rem;line-height:1.7;">
+            組織の中でも起業家として動く。制約より可能性を先に見る。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="twin-grid">
+      <div class="tc tc-blue">
+        <span class="tc-lbl">Knowledge Graph</span>
+        <div class="tag-row">
+          <span class="tag tag-blue">Broadcast</span>
+          <span class="tag tag-blue">OTT</span>
+          <span class="tag tag-blue">AI</span>
+          <span class="tag tag-blue">Media Supply Chain</span>
+          <span class="tag tag-blue">MAM</span>
+        </div>
+      </div>
+      <div class="tc tc-green">
+        <span class="tc-lbl">Experience Graph</span>
+        <div class="tag-row">
+          <span class="tag tag-green">KAIROS立ち上げ</span>
+          <span class="tag tag-green">本社説得</span>
+          <span class="tag tag-green">市場開拓</span>
+          <span class="tag tag-green">AIアプリ開発</span>
+        </div>
+      </div>
+
+      <div class="tc tc-gold tc-full">
+        <span class="tc-lbl">Decision Graph — KAIROSの意思決定パターン</span>
+        <div class="decision-flow">
+          <div class="df-item"><span class="df-arrow">①</span>誰も注目しない市場を特定</div>
+          <div class="df-item"><span class="df-arrow">②</span>ドイツ本社の反対に直面</div>
+          <div class="df-item"><span class="df-arrow">③</span>データと現場知識で説得</div>
+          <div class="df-item"><span class="df-arrow">④</span>ゼロから事業構築・市場開拓</div>
+          <div class="df-item"><span class="df-arrow">⑤</span>主力事業化 ★確認済み</div>
+        </div>
+      </div>
+
+      <div class="tc tc-blue tc-full">
+        <span class="tc-lbl">Trust — 企業に送れる提案文</span>
+        <p class="proposal">
+          放送・OTT・AI領域における30年以上の実務経験を持ちます。
+          KAIROSプロジェクトでは、誰も注目しない市場を特定し、
+          ドイツ本社の反対を乗り越えて事業を主力化しました。
+          この「障壁克服型の意思決定パターン」は再現可能です。
+          現在はAIを活用した事業開発を独力で実証中。
+          週20時間の稼働が可能です。
+        </p>
+      </div>
+    </div>
+
+    <!-- AIコーチング -->
+    <!-- 12軸レーダーチャート -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);padding:1.4rem 1.2rem;margin-bottom:2px;">
+      <span style="font-family:'Space Mono',monospace;font-size:0.56rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(74,158,255,0.6);display:block;margin-bottom:1rem;">12軸評価マップ — AI Professional Twin Score</span>
+      <div style="display:grid;grid-template-columns:260px 1fr;gap:1.5rem;align-items:start;">
+        <canvas id="radar-chart" width="260" height="260"></canvas>
+        <div>
+          <div style="font-family:'Space Mono',monospace;font-size:0.52rem;color:var(--text-dim);letter-spacing:0.15em;margin-bottom:0.6rem;">SCORE DETAIL</div>
+          <div id="axis-scores"></div>
+          <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--text-dim);margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid rgba(255,255,255,0.05);">
+            ★確認済み &nbsp;◆申告ベース &nbsp;△推定（対話から）
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="coach-msg">
+      <span class="coach-lbl">AI Coach からの提案 — GROW:Will × IKIGAI</span>
+      <p class="coach-text">
+        アセスメントの結果、あなたのプロファイルが明確になりました。<br><br>
+        <strong style="color:var(--accent)">Big Five：開放性92%・誠実性85%</strong><br>
+        未知の領域に積極的に踏み込み、データで裏付けを取りながら動く。<br><br>
+        <strong style="color:var(--green)">RIASEC：Enterprising × Investigative</strong><br>
+        「新市場を見つけ、証明し、説得して形にする」パターンが確認されました。<br><br>
+        <strong style="color:var(--gold)">IKIGAIの交差点</strong><br>
+        好き×得意×需要×収益が重なる場所は<strong style="color:var(--green)">「AI × キャリア市場の民主化」</strong>です。<br><br>
+        次のアクション（GROW:Will）：<br>
+        海外メディアテック企業へのアドバイザー打診を<strong style="color:var(--green)">今月中に3社</strong>実施することを提案します。
+        KAIROSの「障壁克服パターン」は、新市場参入に悩む企業が最も求めているものです。
+      </p>
+    </div>
+
+    <div class="twin-cta">
+      <button class="cta-p" onclick="copyProposal()">提案文をコピー</button>
+      <button class="cta-s" onclick="restart()">もう一度試す</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── QUESTION FLOW ──
+// GROW × Big Five × RIASEC × キャリアアンカー
+// 共感エンジン（フロント）× 証拠収集（バック）の2層設計
+
+const flow = [
+  // ── Phase 1: Reality（現状把握）──
+  {
+    q: "職歴を読みました。\n\nまず教えてください。これまでの仕事の中で、\n「これは自分にしかできなかった」と感じた場面はありましたか？",
+    empathy: "傾聴 / Reality（GROW）",
+    framework: "GROW:Reality",
+    extract: null
+  },
+  // ── Phase 2: Big Five — 開放性・誠実性 ──
+  {
+    q: "ありがとうございます。もう少し聞かせてください。\n\n新しいプロジェクトや未知の領域に直面した時、\nあなたはどんな気持ちになりますか？\nワクワクしますか？それとも慎重になりますか？",
+    empathy: "好奇心の測定 / Big Five:開放性",
+    framework: "Big Five:Openness",
+    extract: { type: "kg", label: "開放性：高（新領域への積極性）", ev: "inferred" }
+  },
+  // ── Phase 3: RIASEC ──
+  {
+    q: "なるほど。\n\n少し視点を変えます。\n仕事の中で最も「時間を忘れる」のはどんな場面ですか？\n\n例えば、データを分析している時・人と話している時・\n何かを作り上げている時・など",
+    empathy: "没頭パターンの発掘 / RIASEC",
+    framework: "RIASEC",
+    extract: { type: "kg", label: "RIASEC：Enterprising × Investigative", ev: "inferred" }
+  },
+  // ── Phase 4: キャリアアンカー ──
+  {
+    q: "それは大切な視点ですね。\n\n今まで、仕事で「これだけは譲れない」と感じたことはありましたか？\n\n例えば、自分のペースで動く自由・専門性を極めること・\n人や組織に貢献すること・新しいものを作ること など",
+    empathy: "価値観の核心へ / キャリアアンカー",
+    framework: "Career Anchor",
+    extract: { type: "dg", label: "キャリアアンカー：起業家精神×挑戦", ev: "inferred" }
+  },
+  // ── Phase 5: Experience Graph — 障壁と克服 ──
+  {
+    q: "その価値観、よく分かります。\n\nKAIROSの事業立ち上げについて聞かせてください。\n最も大変だった瞬間はどこでしたか？\n諦めそうになった瞬間はありましたか？",
+    empathy: "困難の深掘り / Experience Graph",
+    framework: "GROW:Reality→Options",
+    extract: { type: "dg", label: "障壁克服パターン：本社説得→事業化", ev: "claimed" }
+  },
+  // ── Phase 6: Goal（目標の言語化）──
+  {
+    q: "その経験があるから今のあなたがいるんですね。\n\n次の3年で、最も実現したいことを一つ挙げるとしたら\n何ですか？\n\n「こうなっていたい」という姿でも構いません。",
+    empathy: "未来への橋渡し / GROW:Goal",
+    framework: "GROW:Goal",
+    extract: { type: "dg", label: "Goal：AI×キャリア市場の革新", ev: "claimed" }
+  },
+  // ── Phase 7: Will（行動設計）+ IKIGAIの交差点 ──
+  {
+    q: "ありがとうございます。もう少しだけ。\n\n「好きなこと」「得意なこと」「世の中が求めること」\n「お金になること」の4つが重なる場所、\nあなたはどこだと思いますか？",
+    empathy: "IKIGAIの確認 / GROW:Will",
+    framework: "IKIGAI × GROW:Will",
+    extract: { type: "eg", label: "IKIGAI交差点：AI×メディア×事業開発", ev: "confirmed" }
+  },
+  {
+    q: "最後にシナリオを一つ。\n\n【状況】重要なプレゼンの3時間前、\nシステム障害が発生しました。\nクライアントは既に会場へ向かっています。\n\nあなたは最初の5分間、何をしますか？",
+    empathy: "シミュレーション / EQ × 判断力 × Grit",
+    framework: "Simulation:Crisis",
+    extract: { type: "dg", label: "危機判断：優先順位付け→実行", ev: "inferred" }
+  }
+];
+
+// Demo auto-answers（KAIROSの実例 × GROW × Big Five）
+const demoAnswers = [
+  "KAIROSの事業立ち上げです。誰も注目していない市場を見つけて、ゼロから主力事業にしました。あの経験は自分にしかできなかったと思います。",
+  "ワクワクします。誰も行っていない場所に最初に踏み込むのが好きです。リスクより可能性の方が先に見えます。",
+  "戦略を考えている時と、人を説得できた瞬間です。データを整理して相手の考えが変わる瞬間が一番面白いです。",
+  "「自分のやり方で動く自由」と「新しいものを形にすること」は譲れません。組織の中でも起業家として動いてきました。",
+  "ドイツ本社が完全に反対していた時です。予算もなく、社内政治的にも孤立していました。でも市場データが正しいと確信していたので諦めませんでした。",
+  "AIを使って、優秀な人が正しく評価される市場を作りたいです。KAIROSと同じように、誰も見ていない課題を解決したい。",
+  "好きなこと：AIと市場を分析すること。得意なこと：人を説得して事業を形にすること。世の中が求めること：AIキャリアの民主化。お金になること：企業が欲しい人材を見つけること。4つが重なる場所がAI Professional Twinです。",
+  "まず3つに分類します。①今すぐできる代替手段の準備②クライアントへの正直な連絡③対処不能な部分の見極め。スライドPDFと紙資料を即座に手配しながら、クライアントに状況を先に伝えます。隠すより早く伝える方が信頼を守れます。"
+];
+
+// Graph data
+const graphData = {
+  kg: [
+    { label: "Broadcast / OTT", ev: "confirmed" },
+    { label: "AI / LLM", ev: "confirmed" },
+    { label: "Knowledge Graph", ev: "confirmed" },
+    { label: "Media Supply Chain", ev: "claimed" },
+    { label: "Startup / B2C", ev: "confirmed" }
+  ],
+  eg: [
+    { label: "KAIROS立ち上げ", ev: "confirmed" },
+    { label: "ドイツ本社説得", ev: "claimed" },
+    { label: "Claudeアプリ開発（50日）", ev: "confirmed" },
+    { label: "ブログ11本執筆", ev: "confirmed" }
+  ],
+  dg: [
+    { label: "新市場特定パターン", ev: "confirmed" },
+    { label: "反対勢力→説得→実現", ev: "confirmed" },
+    { label: "再現可能な意思決定モデル", ev: "confirmed" }
+  ]
+};
+
+const evLabel = { confirmed: "★確認", claimed: "◆申告", inferred: "△推定" };
+const evClass = { confirmed: "ev-confirmed", claimed: "ev-claimed", inferred: "ev-inferred" };
+
+let cur = 0;
+let busy = false;
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startInterview() {
+  show('s-interview');
+  initDots();
+  setTimeout(() => aiMsg(flow[0].q, flow[0].empathy), 600);
+}
+
+function initDots() {
+  const d = document.getElementById('pdots');
+  d.innerHTML = '';
+  flow.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'pd' + (i === 0 ? ' active' : '');
+    d.appendChild(dot);
+  });
+}
+
+function updateDots(q) {
+  document.querySelectorAll('.pd').forEach((d, i) => {
+    d.className = 'pd';
+    if (i < q) d.classList.add('done');
+    if (i === q) d.classList.add('active');
+  });
+  document.getElementById('qlabel').textContent = `Q ${Math.min(q+1, flow.length)} / ${flow.length}`;
+}
+
+function aiMsg(text, empathy) {
+  const area = document.getElementById('chat-area');
+  const tid = 'typing_' + Date.now();
+
+  const t = document.createElement('div');
+  t.className = 'msg msg-ai'; t.id = tid;
+  t.innerHTML = `<div class="avatar">AI</div>
+    <div class="bubble"><div class="typing-ind">
+      <div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>
+    </div></div>`;
+  area.appendChild(t);
+  area.scrollTop = area.scrollHeight;
+
+  setTimeout(() => {
+    t.remove();
+    const m = document.createElement('div');
+    m.className = 'msg msg-ai';
+    const empBadge = empathy ? `<div class="empathy-tag">${empathy}</div>` : '';
+    m.innerHTML = `<div class="avatar">AI</div>
+      <div class="bubble">${empBadge}${text.replace(/\n/g,'<br>')}</div>`;
+    area.appendChild(m);
+    area.scrollTop = area.scrollHeight;
+    document.getElementById('send-b').disabled = false;
+    document.getElementById('chat-in').focus();
+    busy = false;
+  }, 1000 + Math.random() * 600);
+}
+
+function addNode(type, label, ev) {
+  const list = document.getElementById(type + '-nodes');
+  if (!list) return;
+  const item = document.createElement('div');
+  item.className = 'node-item';
+  item.innerHTML = `<span>${label}</span><span class="ev-badge ${evClass[ev]}">${evLabel[ev]}</span>`;
+  list.appendChild(item);
+}
+
+function send() {
+  const inp = document.getElementById('chat-in');
+  const text = inp.value.trim() || demoAnswers[cur];
+  if (!text || busy) return;
+  busy = true;
+  document.getElementById('send-b').disabled = true;
+  inp.value = '';
+
+  const area = document.getElementById('chat-area');
+  const m = document.createElement('div');
+  m.className = 'msg msg-user';
+  m.innerHTML = `<div class="avatar">YM</div><div class="bubble">${text}</div>`;
+  area.appendChild(m);
+  area.scrollTop = area.scrollHeight;
+
+  // Extract to graph
+  const f = flow[cur];
+  if (f.extract) {
+    setTimeout(() => addNode(f.extract.type, f.extract.label, f.extract.ev), 400);
+  }
+
+  cur++;
+  if (cur < flow.length) {
+    updateDots(cur);
+    setTimeout(() => aiMsg(flow[cur].q, flow[cur].empathy), 600);
+  } else {
+    // Show all graph data then transition
+    setTimeout(() => {
+      graphData.kg.forEach(n => addNode('kg', n.label, n.ev));
+      graphData.eg.forEach(n => addNode('eg', n.label, n.ev));
+      graphData.dg.forEach(n => addNode('dg', n.label, n.ev));
+    }, 400);
+
+    setTimeout(() => {
+      const done = document.createElement('div');
+      done.className = 'msg msg-ai';
+      done.innerHTML = `<div class="avatar">AI</div>
+        <div class="bubble">
+          <div class="empathy-tag">分析完了</div>
+          ありがとうございます。<br><br>
+          <strong style="color:var(--green)">Professional Twinを生成しました。</strong><br>
+          Knowledge Graph・Experience Graph・Decision Graphの3層が構築されました。
+        </div>`;
+      area.appendChild(done);
+      area.scrollTop = area.scrollHeight;
+      setTimeout(() => { show('s-twin'); setTimeout(drawRadar, 500); }, 2000);
+    }, 800);
+  }
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+
+function copyProposal() {
+  const t = document.querySelector('.proposal').textContent.trim();
+  navigator.clipboard.writeText(t).then(() => {
+    const b = document.querySelector('.cta-p');
+    b.textContent = 'コピーしました ✓';
+    setTimeout(() => { b.textContent = '提案文をコピー'; }, 2000);
+  });
+}
+
+function restart() {
+  cur = 0; busy = false;
+  document.getElementById('chat-area').innerHTML = '';
+  document.getElementById('chat-in').value = '';
+  document.getElementById('resume-input').value = '';
+  ['kg','eg','dg'].forEach(t => { document.getElementById(t+'-nodes').innerHTML = ''; });
+  const sc = document.getElementById('axis-scores');
+  if(sc) sc.innerHTML = '';
+  const cv = document.getElementById('radar-chart');
+  if(cv) cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+  const area = document.querySelector('.upload-area');
+  if(area) { area.style.borderColor=''; area.style.background=''; }
+  const label = document.getElementById('upload-label');
+  if(label) label.innerHTML = '<span class="txt-ja">📄 履歴書・職務経歴書をアップロード</span><span class="txt-en" style="display:none">📄 Upload Resume / CV</span>';
+  show('s-input');
+}
+
+// 12軸スコアデータ
+const axisData = [
+  { label:"知能・数的推理", score:82, ev:"△" },
+  { label:"認知・注意力",   score:78, ev:"△" },
+  { label:"Big Five",       score:90, ev:"◆" },
+  { label:"価値観(CA)",     score:95, ev:"◆" },
+  { label:"強み(VIA)",      score:88, ev:"◆" },
+  { label:"EQ・対人力",     score:85, ev:"△" },
+  { label:"Grit",           score:96, ev:"★" },
+  { label:"回復力",         score:91, ev:"★" },
+  { label:"創造性",         score:87, ev:"△" },
+  { label:"リーダーシップ", score:93, ev:"★" },
+  { label:"判断力",         score:94, ev:"★" },
+  { label:"専門性",         score:97, ev:"★" }
+];
+
+function drawRadar() {
+  const canvas = document.getElementById('radar-chart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 38;
+  const N = axisData.length, ang = (2*Math.PI)/N;
+  ctx.clearRect(0,0,W,H);
+  // Grid
+  [0.25,0.5,0.75,1.0].forEach(r => {
+    ctx.beginPath();
+    for(let i=0;i<N;i++){
+      const a=-Math.PI/2+ang*i, x=cx+R*r*Math.cos(a), y=cy+R*r*Math.sin(a);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle='rgba(120,180,255,0.1)';ctx.lineWidth=1;ctx.stroke();
+  });
+  // Axes
+  for(let i=0;i<N;i++){
+    const a=-Math.PI/2+ang*i;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));
+    ctx.strokeStyle='rgba(120,180,255,0.12)';ctx.lineWidth=1;ctx.stroke();
+  }
+  // Data
+  ctx.beginPath();
+  axisData.forEach((d,i)=>{
+    const a=-Math.PI/2+ang*i, r=(d.score/100)*R;
+    const x=cx+r*Math.cos(a), y=cy+r*Math.sin(a);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  ctx.fillStyle='rgba(74,158,255,0.12)';ctx.fill();
+  ctx.strokeStyle='rgba(74,158,255,0.7)';ctx.lineWidth=1.5;ctx.stroke();
+  // Dots
+  axisData.forEach((d,i)=>{
+    const a=-Math.PI/2+ang*i, r=(d.score/100)*R;
+    ctx.beginPath();ctx.arc(cx+r*Math.cos(a),cy+r*Math.sin(a),3,0,2*Math.PI);
+    ctx.fillStyle='rgba(74,158,255,0.9)';ctx.fill();
+  });
+  // Labels
+  axisData.forEach((d,i)=>{
+    const a=-Math.PI/2+ang*i;
+    const lx=cx+(R+22)*Math.cos(a), ly=cy+(R+22)*Math.sin(a);
+    ctx.font='8px monospace';ctx.fillStyle='rgba(220,230,248,0.5)';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(d.label,lx,ly);
+  });
+  // Score list
+  const container = document.getElementById('axis-scores');
+  if(container && container.children.length===0){
+    axisData.forEach(d=>{
+      const evColor=d.ev==='★'?'#4ade80':d.ev==='◆'?'#c9a84c':'#f87171';
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:0.4rem;margin-bottom:4px;';
+      row.innerHTML='<span style="font-family:monospace;font-size:0.5rem;color:'+evColor+';min-width:0.8rem;">'+d.ev+'</span>'
+        +'<span style="font-family:monospace;font-size:0.56rem;color:rgba(220,230,248,0.55);flex:1;">'+d.label+'</span>'
+        +'<div style="width:48px;height:3px;background:rgba(255,255,255,0.06);">'
+        +'<div style="height:100%;width:'+d.score+'%;background:rgba(74,158,255,0.6);"></div></div>'
+        +'<span style="font-family:monospace;font-size:0.54rem;color:rgba(220,230,248,0.7);min-width:1.8rem;text-align:right;">'+d.score+'</span>';
+      container.appendChild(row);
+    });
+  }
+}
+
+// JP/EN切り替え
+let currentLang = 'jp';
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.txt-ja').forEach(el => {
+    el.style.display = lang === 'jp' ? '' : 'none';
+  });
+  document.querySelectorAll('.txt-en').forEach(el => {
+    el.style.display = lang === 'en' ? '' : 'none';
+  });
+  const bjp = document.getElementById('bjp');
+  const ben = document.getElementById('ben');
+  if(bjp) bjp.className = 'lbtn' + (lang==='jp'?' on':'');
+  if(ben) ben.className = 'lbtn' + (lang==='en'?' on':'');
+  // placeholder更新
+  const ta = document.getElementById('resume-input');
+  if(ta) ta.placeholder = lang==='jp'
+    ? '例：ソリューションアーキテクトとして映像制作市場向けソフトウェアの事業立ち上げを担当。KAIROS事業を立ち上げ主力事業化。AIを活用したWebアプリ開発・ブログ執筆・ピッチデッキ作成を独力で実施。'
+    : 'e.g. As Solution Architect, led the launch of software for the video production market. Grew KAIROS into a core business. Independently built web apps, blog articles, and pitch deck using AI.';
+}
+
+// 履歴書ファイルアップロード
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('resume-input').value = e.target.result;
+    const area = document.querySelector('.upload-area');
+    const label = document.getElementById('upload-label');
+    if(label) label.innerHTML = '<span>✓ ' + file.name + '</span>';
+    if(area) { area.style.borderColor='rgba(74,222,128,0.5)'; area.style.background='rgba(74,222,128,0.04)'; }
+  };
+  reader.onerror = function() {
+    alert(currentLang==='jp'?'読み込みに失敗しました。TXTファイルをお試しください。':'Failed to read. Please try a TXT file.');
+  };
+  reader.readAsText(file);
+}
+
+// Auto-resize textarea
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('chat-in');
+  if (ta) ta.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+  });
+});
+</script>
+</body>
+</html>
