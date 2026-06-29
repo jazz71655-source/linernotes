@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PONG</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Courier New', monospace;
+  color: #fff;
+}
+h1 {
+  font-size: 32px;
+  letter-spacing: 12px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+canvas {
+  display: block;
+  border: 2px solid #fff;
+}
+#msg {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+  line-height: 1.8;
+}
+</style>
+</head>
+<body>
+
+<h1>PONG</h1>
+<canvas id="c" width="600" height="400"></canvas>
+<div id="msg">
+  スペースキーでスタート<br>
+  左パドル: W / S キー &nbsp;|&nbsp; 右パドル: ↑ / ↓ キー
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const PAD_W = 10, PAD_H = 70, BALL_SIZE = 10;
+const PAD_SPEED = 5;
+const INIT_SPEED = 2.5;
+const MAX_SPEED = 12;
+
+let state = 'idle';
+let scoreL = 0, scoreR = 0;
+let ball, padL, padR, keys, rallyCount;
+
+function init() {
+  rallyCount = 0;
+  ball = { x: W/2, y: H/2, vx: INIT_SPEED * (Math.random()<0.5?1:-1), vy: 1.5 * (Math.random()<0.5?1:-1) };
+  padL = { y: H/2 - PAD_H/2 };
+  padR = { y: H/2 - PAD_H/2 };
+  keys = {};
+}
+
+function resetBall(dir) {
+  rallyCount = 0;
+  ball.x = W/2; ball.y = H/2;
+  ball.vx = INIT_SPEED * dir;
+  ball.vy = 1.5 * (Math.random()<0.5?1:-1);
+}
+
+function update() {
+  if (state !== 'play') return;
+
+  // パドル移動
+  if (keys['w'] || keys['W']) padL.y -= PAD_SPEED;
+  if (keys['s'] || keys['S']) padL.y += PAD_SPEED;
+  if (keys['ArrowUp'])   padR.y -= PAD_SPEED;
+  if (keys['ArrowDown']) padR.y += PAD_SPEED;
+
+  padL.y = Math.max(0, Math.min(H - PAD_H, padL.y));
+  padR.y = Math.max(0, Math.min(H - PAD_H, padR.y));
+
+  // ボール移動
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  // 上下壁バウンド
+  if (ball.y <= 0) { ball.y = 0; ball.vy *= -1; }
+  if (ball.y + BALL_SIZE >= H) { ball.y = H - BALL_SIZE; ball.vy *= -1; }
+
+  // 左パドル衝突
+  if (ball.x <= 20 + PAD_W &&
+      ball.y + BALL_SIZE >= padL.y &&
+      ball.y <= padL.y + PAD_H &&
+      ball.vx < 0) {
+    ball.x = 20 + PAD_W;
+    rallyCount++;
+    let accel = 1 + rallyCount * 0.04;
+    ball.vx = Math.abs(ball.vx) * accel;
+    let hit = (ball.y + BALL_SIZE/2) - (padL.y + PAD_H/2);
+    ball.vy = hit * 0.18;
+  }
+
+  // 右パドル衝突
+  if (ball.x + BALL_SIZE >= W - 20 - PAD_W &&
+      ball.y + BALL_SIZE >= padR.y &&
+      ball.y <= padR.y + PAD_H &&
+      ball.vx > 0) {
+    ball.x = W - 20 - PAD_W - BALL_SIZE;
+    rallyCount++;
+    let accel = 1 + rallyCount * 0.04;
+    ball.vx = -Math.abs(ball.vx) * accel;
+    let hit = (ball.y + BALL_SIZE/2) - (padR.y + PAD_H/2);
+    ball.vy = hit * 0.18;
+  }
+
+  // 速度上限
+  ball.vx = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, ball.vx));
+  ball.vy = Math.max(-10, Math.min(10, ball.vy));
+
+  // 得点
+  if (ball.x < 0) {
+    scoreR++;
+    if (scoreR >= 7) { state = 'over'; return; }
+    resetBall(1);
+  }
+  if (ball.x > W) {
+    scoreL++;
+    if (scoreL >= 7) { state = 'over'; return; }
+    resetBall(-1);
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // センターライン
+  ctx.setLineDash([10, 10]);
+  ctx.strokeStyle = '#444';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // スコア
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 48px Courier New';
+  ctx.textAlign = 'center';
+  ctx.fillText(scoreL, W/2 - 80, 60);
+  ctx.fillText(scoreR, W/2 + 80, 60);
+
+  // パドル
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(20, padL.y, PAD_W, PAD_H);
+  ctx.fillRect(W - 20 - PAD_W, padR.y, PAD_W, PAD_H);
+
+  // ボール
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(ball.x, ball.y, BALL_SIZE, BALL_SIZE);
+
+  // ラリー数表示
+  if (state === 'play') {
+    ctx.fillStyle = '#333';
+    ctx.font = '13px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('rally ' + rallyCount, W/2, H - 10);
+  }
+  if (state === 'idle') {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px Courier New';
+    ctx.fillText('スペースキーでスタート', W/2, H/2);
+  }
+  if (state === 'over') {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 24px Courier New';
+    let winner = scoreL >= 7 ? '左プレイヤーの勝ち！' : '右プレイヤーの勝ち！';
+    ctx.fillText(winner, W/2, H/2 - 20);
+    ctx.font = '16px Courier New';
+    ctx.fillText('スペースキーでもう一度', W/2, H/2 + 20);
+  }
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (e.key === ' ') {
+    e.preventDefault();
+    if (state === 'idle' || state === 'over') {
+      scoreL = 0; scoreR = 0;
+      init();
+      state = 'play';
+      document.getElementById('msg').textContent = '先に7点取ったほうが勝ち！';
+    }
+  }
+  if (['ArrowUp','ArrowDown'].includes(e.key)) e.preventDefault();
+});
+
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// タッチ操作（左半分=左パドル、右半分=右パドル、上下で移動）
+let touchL = null, touchR = null;
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  for (let t of e.changedTouches) {
+    let rect = canvas.getBoundingClientRect();
+    let tx = t.clientX - rect.left;
+    if (tx < W/2) touchL = t.identifier;
+    else touchR = t.identifier;
+  }
+  if (state === 'idle' || state === 'over') {
+    scoreL = 0; scoreR = 0; init(); state = 'play';
+    document.getElementById('msg').textContent = '先に7点取ったほうが勝ち！';
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  let rect = canvas.getBoundingClientRect();
+  let scaleY = H / rect.height;
+  for (let t of e.changedTouches) {
+    let ty = (t.clientY - rect.top) * scaleY;
+    if (t.identifier === touchL) padL.y = Math.max(0, Math.min(H-PAD_H, ty - PAD_H/2));
+    if (t.identifier === touchR) padR.y = Math.max(0, Math.min(H-PAD_H, ty - PAD_H/2));
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchend', e => {
+  for (let t of e.changedTouches) {
+    if (t.identifier === touchL) touchL = null;
+    if (t.identifier === touchR) touchR = null;
+  }
+}, {passive:false});
+
+init();
+loop();
+</script>
+</body>
+</html>
