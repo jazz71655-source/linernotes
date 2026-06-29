@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAC-MAN</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #111;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Helvetica Neue', sans-serif;
+  color: #fff;
+}
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #FFE000;
+  letter-spacing: 6px;
+  margin-bottom: 12px;
+}
+#score-bar {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #aaa;
+}
+#score-bar span { font-size: 16px; font-weight: 600; color: #fff; }
+canvas {
+  border-radius: 8px;
+  border: 1px solid #333;
+  display: block;
+}
+#msg {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #aaa;
+  min-height: 22px;
+}
+#controls {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #555;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h1>PAC-MAN</h1>
+<div id="score-bar">スコア: <span id="sc">0</span>&nbsp;&nbsp;残機: <span id="lv">3</span></div>
+<canvas id="c"></canvas>
+<div id="msg">スペースキーまたはタップでスタート</div>
+<div id="controls">← → ↑ ↓ キーまたは画面タップで操作</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const CELL = 28, COLS = 15, ROWS = 15;
+canvas.width = COLS * CELL;
+canvas.height = ROWS * CELL;
+
+const MAP_TEMPLATE = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,2,2,2,2,2,1,2,2,2,2,2,2,2,1],
+  [1,3,1,2,1,2,1,2,1,2,1,2,1,3,1],
+  [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+  [1,2,1,2,1,1,2,1,2,1,1,2,1,2,1],
+  [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+  [1,1,1,2,1,0,0,0,0,0,1,2,1,1,1],
+  [0,0,1,2,1,0,0,0,0,0,1,2,1,0,0],
+  [1,1,1,2,1,0,0,0,0,0,1,2,1,1,1],
+  [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+  [1,2,1,2,1,1,2,1,2,1,1,2,1,2,1],
+  [1,3,2,2,2,2,2,2,2,2,2,2,2,3,1],
+  [1,2,1,2,1,2,1,2,1,2,1,2,1,2,1],
+  [1,2,2,2,2,2,1,2,2,2,2,2,2,2,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+];
+
+let map, score, lives, pac, ghosts, dir, nextDir, phase, dotCount, timer, powered, powerTimer, gameRunning, releaseTimer;
+
+const GHOST_COLORS_HEX = ['#FF4444','#FFB8FF','#00FFFF','#FFB852'];
+const DIRS = {
+  ArrowLeft: {x:-1,y:0},
+  ArrowRight:{x:1,y:0},
+  ArrowUp:   {x:0,y:-1},
+  ArrowDown: {x:0,y:1}
+};
+
+function canMove(gx, gy) {
+  return gx >= 0 && gx < COLS && gy >= 0 && gy < ROWS && map[gy][gx] !== 1;
+}
+
+function initGame() {
+  map = MAP_TEMPLATE.map(r => [...r]);
+  score = 0; lives = 3; dotCount = 0;
+  powered = false; powerTimer = 0; releaseTimer = 0;
+  pac = { x:7, y:11, px:7*CELL+CELL/2, py:11*CELL+CELL/2, mouthAngle:0.25, mouthDir:1 };
+  dir = {x:0,y:0}; nextDir = {x:0,y:0};
+  ghosts = [
+    {x:6,y:7,px:6*CELL+CELL/2,py:7*CELL+CELL/2,dir:{x:1,y:0}, col:0,mode:'house'},
+    {x:7,y:7,px:7*CELL+CELL/2,py:7*CELL+CELL/2,dir:{x:-1,y:0},col:1,mode:'house'},
+    {x:8,y:7,px:8*CELL+CELL/2,py:8*CELL+CELL/2,dir:{x:1,y:0}, col:2,mode:'house'},
+    {x:9,y:7,px:9*CELL+CELL/2,py:9*CELL+CELL/2,dir:{x:-1,y:0},col:3,mode:'house'},
+  ];
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
+    if (map[r][c]===2 || map[r][c]===3) dotCount++;
+  }
+  phase = 'idle'; gameRunning = false;
+  document.getElementById('sc').textContent = 0;
+  document.getElementById('lv').textContent = 3;
+  document.getElementById('msg').textContent = 'スペースキーまたはタップでスタート';
+}
+
+function moveGhost(g) {
+  if (g.mode === 'house') {
+    g.px += g.dir.x * 1.5;
+    g.py += g.dir.y * 1.5;
+    let cx = Math.round(g.px/CELL-0.5), cy = Math.round(g.py/CELL-0.5);
+    if (!canMove(cx+g.dir.x, cy+g.dir.y)) g.dir = {x:-g.dir.x, y:-g.dir.y};
+    return;
+  }
+  const speed = powered ? 0.8 : 1.5;
+  g.px += g.dir.x * speed;
+  g.py += g.dir.y * speed;
+  let cx = Math.floor(g.px/CELL), cy = Math.floor(g.py/CELL);
+  let fx = g.px - cx*CELL, fy = g.py - cy*CELL;
+  if (Math.abs(fx - CELL/2) < speed+1 && Math.abs(fy - CELL/2) < speed+1) {
+    g.px = cx*CELL+CELL/2; g.py = cy*CELL+CELL/2; g.x = cx; g.y = cy;
+    let options = [];
+    const ds = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+    for (let d of ds) {
+      if (d.x===-g.dir.x && d.y===-g.dir.y) continue;
+      if (canMove(cx+d.x, cy+d.y)) options.push(d);
+    }
+    if (options.length===0) { g.dir={x:-g.dir.x,y:-g.dir.y}; }
+    else if (options.length===1) { g.dir=options[0]; }
+    else {
+      if (!powered) {
+        let dx=pac.x-cx, dy=pac.y-cy;
+        options.sort((a,b)=>(Math.abs(dx-a.x)+Math.abs(dy-a.y))-(Math.abs(dx-b.x)+Math.abs(dy-b.y)));
+        g.dir = Math.random()<0.75 ? options[0] : options[Math.floor(Math.random()*options.length)];
+      } else {
+        g.dir = options[Math.floor(Math.random()*options.length)];
+      }
+    }
+  }
+}
+
+function update() {
+  if (!gameRunning) return;
+  releaseTimer++;
+  if (releaseTimer % 120 === 0) {
+    let housed = ghosts.filter(g => g.mode==='house');
+    if (housed.length > 0) {
+      housed[0].mode='chase'; housed[0].x=7; housed[0].y=6;
+      housed[0].px=7*CELL+CELL/2; housed[0].py=6*CELL+CELL/2;
+    }
+  }
+  if (powered) { powerTimer--; if (powerTimer<=0) powered=false; }
+
+  let nx=pac.x+nextDir.x, ny=pac.y+nextDir.y;
+  if (canMove(nx,ny)) dir = nextDir;
+  let mx=pac.x+dir.x, my=pac.y+dir.y;
+  if (canMove(mx,my)) {
+    pac.px += dir.x * 2; pac.py += dir.y * 2;
+    let cx=Math.floor(pac.px/CELL), cy=Math.floor(pac.py/CELL);
+    if (cx!==pac.x || cy!==pac.y) { pac.x=cx; pac.y=cy; }
+    let cell = map[pac.y]?.[pac.x];
+    if (cell===2) { map[pac.y][pac.x]=0; score+=10; dotCount--; document.getElementById('sc').textContent=score; }
+    if (cell===3) { map[pac.y][pac.x]=0; score+=50; dotCount--; powered=true; powerTimer=300; document.getElementById('sc').textContent=score; }
+    if (dotCount<=0) {
+      phase='win'; gameRunning=false;
+      document.getElementById('msg').textContent='クリア！スペースでもう一度';
+      return;
+    }
+  }
+  pac.mouthAngle += 0.05*pac.mouthDir;
+  if (pac.mouthAngle>=0.25 || pac.mouthAngle<=0.02) pac.mouthDir*=-1;
+
+  for (let g of ghosts) moveGhost(g);
+
+  for (let g of ghosts) {
+    if (g.mode==='house') continue;
+    let dx=g.px-pac.px, dy=g.py-pac.py;
+    if (Math.sqrt(dx*dx+dy*dy) < CELL*0.7) {
+      if (powered) {
+        g.mode='house'; g.px=7*CELL+CELL/2; g.py=7*CELL+CELL/2; g.x=7; g.y=7;
+        score+=200; document.getElementById('sc').textContent=score;
+      } else {
+        lives--; document.getElementById('lv').textContent=lives;
+        if (lives<=0) {
+          phase='over'; gameRunning=false;
+          document.getElementById('msg').textContent='ゲームオーバー スペースでもう一度';
+          return;
+        }
+        pac.x=7; pac.y=11; pac.px=7*CELL+CELL/2; pac.py=11*CELL+CELL/2;
+        dir={x:0,y:0}; nextDir={x:0,y:0};
+        ghosts.forEach((gh,i)=>{
+          gh.mode='house'; gh.px=(6+i)*CELL+CELL/2; gh.py=7*CELL+CELL/2; gh.x=6+i; gh.y=7;
+        });
+        releaseTimer=0;
+        return;
+      }
+    }
+  }
+}
+
+function drawMaze() {
+  for (let r=0;r<ROWS;r++) {
+    for (let c=0;c<COLS;c++) {
+      let v=map[r][c], x=c*CELL, y=r*CELL;
+      if (v===1) {
+        ctx.fillStyle='#1a1a6e'; ctx.fillRect(x,y,CELL,CELL);
+        ctx.strokeStyle='#4444cc'; ctx.lineWidth=1.5;
+        ctx.strokeRect(x+1,y+1,CELL-2,CELL-2);
+      } else {
+        ctx.fillStyle='#111'; ctx.fillRect(x,y,CELL,CELL);
+        if (v===2) {
+          ctx.beginPath(); ctx.arc(x+CELL/2,y+CELL/2,2.5,0,Math.PI*2);
+          ctx.fillStyle='#fff'; ctx.fill();
+        }
+        if (v===3) {
+          ctx.beginPath(); ctx.arc(x+CELL/2,y+CELL/2,5.5,0,Math.PI*2);
+          ctx.fillStyle='#fff'; ctx.fill();
+        }
+      }
+    }
+  }
+}
+
+function drawPac() {
+  let a = pac.mouthAngle*Math.PI;
+  let angle = Math.atan2(dir.y, dir.x);
+  if (dir.x===0 && dir.y===0) angle=0;
+  ctx.beginPath();
+  ctx.moveTo(pac.px, pac.py);
+  ctx.arc(pac.px, pac.py, CELL/2-3, angle+a, angle+Math.PI*2-a);
+  ctx.closePath();
+  ctx.fillStyle='#FFE000'; ctx.fill();
+}
+
+function drawGhosts() {
+  for (let g of ghosts) {
+    let x=g.px, y=g.py, r=CELL/2-3;
+    ctx.save();
+    let col = powered
+      ? (powerTimer<80 && Math.floor(powerTimer/10)%2===0 ? '#fff' : '#0000cc')
+      : GHOST_COLORS_HEX[g.col];
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.arc(x, y-r*0.1, r, Math.PI, 0);
+    let bot = y+r;
+    ctx.lineTo(x+r, bot);
+    let segs=3, sw=(r*2)/segs;
+    for (let i=segs;i>=0;i--) {
+      let lx=x-r+i*sw, ly=i%2===0?bot:bot-r*0.4;
+      ctx.lineTo(lx, ly);
+    }
+    ctx.closePath(); ctx.fill();
+    let ex=x-r*0.35, ey=y-r*0.2;
+    [ex, ex+r*0.7].forEach(ex2=>{
+      ctx.beginPath(); ctx.ellipse(ex2,ey,r*0.25,r*0.3,0,0,Math.PI*2);
+      ctx.fillStyle='#fff'; ctx.fill();
+      ctx.beginPath(); ctx.arc(ex2+1,ey,r*0.12,0,Math.PI*2);
+      ctx.fillStyle='#000'; ctx.fill();
+    });
+    ctx.restore();
+  }
+}
+
+function drawOverlay() {
+  if (phase==='idle') {
+    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.font='bold 22px sans-serif'; ctx.fillStyle='#FFE000'; ctx.textAlign='center';
+    ctx.fillText('PAC-MAN', canvas.width/2, canvas.height/2-10);
+    ctx.font='14px sans-serif'; ctx.fillStyle='#fff';
+    ctx.fillText('スペースキーまたはタップでスタート', canvas.width/2, canvas.height/2+20);
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawMaze(); drawPac(); drawGhosts(); drawOverlay();
+}
+
+function loop() {
+  update(); draw();
+  requestAnimationFrame(loop);
+}
+
+document.addEventListener('keydown', e=>{
+  if (DIRS[e.key]) { e.preventDefault(); nextDir=DIRS[e.key]; }
+  if (e.key===' ') {
+    if (!gameRunning) {
+      initGame(); gameRunning=true; phase='play';
+      document.getElementById('msg').textContent='';
+    }
+  }
+});
+
+canvas.addEventListener('touchstart', e=>{
+  e.preventDefault();
+  let t=e.touches[0], rect=canvas.getBoundingClientRect();
+  let tx=t.clientX-rect.left, ty=t.clientY-rect.top;
+  let cx=canvas.width/2, cy=canvas.height/2;
+  if (Math.abs(tx-cx)>Math.abs(ty-cy)) {
+    nextDir = tx>cx ? {x:1,y:0} : {x:-1,y:0};
+  } else {
+    nextDir = ty>cy ? {x:0,y:1} : {x:0,y:-1};
+  }
+  if (!gameRunning) {
+    initGame(); gameRunning=true; phase='play';
+    document.getElementById('msg').textContent='';
+  }
+}, {passive:false});
+
+initGame();
+loop();
+</script>
+</body>
+</html>
