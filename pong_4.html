@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PONG</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Courier New', monospace;
+  color: #fff;
+  touch-action: none;
+  user-select: none;
+}
+h1 { font-size: 28px; letter-spacing: 12px; margin-bottom: 8px; }
+canvas { display: block; border: 2px solid #fff; }
+#msg { margin-top: 12px; font-size: 13px; color: #888; text-align: center; line-height: 1.8; }
+#mode-select { display: flex; gap: 12px; margin-bottom: 10px; }
+#mode-select button {
+  background: #111; border: 1px solid #555; color: #aaa;
+  font-family: 'Courier New', monospace; font-size: 13px;
+  padding: 6px 16px; border-radius: 6px; cursor: pointer;
+}
+#mode-select button.active { background: #fff; color: #000; border-color: #fff; }
+</style>
+</head>
+<body>
+<h1>PONG</h1>
+<div id="mode-select">
+  <button id="btn-vs" class="active">👥 対戦</button>
+  <button id="btn-cpu">🤖 CPU対戦</button>
+</div>
+<canvas id="c" tabindex="0"></canvas>
+<div id="msg">スペースキーまたはタップでスタート<br>左パドル: W/S または ↑/↓ キー（CPU対戦時）</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+const maxW = Math.min(window.innerWidth - 16, 600);
+const W = maxW, H = Math.round(maxW * 2 / 3);
+canvas.width = W; canvas.height = H;
+
+const PAD_W   = Math.max(8,  Math.round(W * 0.017));
+const PAD_H   = Math.max(40, Math.round(H * 0.175));
+const BALL_SZ = Math.max(6,  Math.round(W * 0.017));
+const PAD_SPD = H * 0.013;
+const INIT_VX = W * 0.004;
+const MAX_SPD = W * 0.02;
+
+let cpuMode = false;
+let state = 'idle';
+let scoreL = 0, scoreR = 0;
+let ball, padL, padR, rallyCount;
+let keys = {};
+
+// ------- モードボタン -------
+document.getElementById('btn-vs').addEventListener('click', () => {
+  cpuMode = false;
+  document.getElementById('btn-vs').classList.add('active');
+  document.getElementById('btn-cpu').classList.remove('active');
+});
+document.getElementById('btn-cpu').addEventListener('click', () => {
+  cpuMode = true;
+  document.getElementById('btn-cpu').classList.add('active');
+  document.getElementById('btn-vs').classList.remove('active');
+});
+
+// ------- 初期化 -------
+function init() {
+  rallyCount = 0;
+  const d = Math.random() < 0.5 ? 1 : -1;
+  ball = { x: W/2, y: H/2,
+           vx: INIT_VX * d,
+           vy: INIT_VX * 0.6 * (Math.random() < 0.5 ? 1 : -1) };
+  padL = { y: H/2 - PAD_H/2 };
+  padR = { y: H/2 - PAD_H/2 };
+}
+
+function resetBall(dir) {
+  rallyCount = 0;
+  ball.x = W/2; ball.y = H/2;
+  ball.vx = INIT_VX * dir;
+  ball.vy = INIT_VX * 0.6 * (Math.random() < 0.5 ? 1 : -1);
+}
+
+// ------- CPU AI -------
+function moveCPU() {
+  const center = ball.y + BALL_SZ / 2;
+  const padCenter = padR.y + PAD_H / 2;
+  const speed = Math.min(PAD_SPD * (0.65 + rallyCount * 0.015), PAD_SPD * 0.92);
+  if (center < padCenter - 5) padR.y -= speed;
+  else if (center > padCenter + 5) padR.y += speed;
+  padR.y = Math.max(0, Math.min(H - PAD_H, padR.y));
+}
+
+// ------- 更新 -------
+function update() {
+  if (state !== 'play') return;
+
+  // 左パドル
+  // CPU対戦モード：W/S と ↑/↓ どちらでも操作可（右はCPUなので競合しない）
+  // 対戦モード：W/S のみ（↑/↓は右パドル用のため）
+  if (keys['w'] || keys['W']) padL.y -= PAD_SPD;
+  if (keys['s'] || keys['S']) padL.y += PAD_SPD;
+  if (cpuMode) {
+    if (keys['ArrowUp'])   padL.y -= PAD_SPD;
+    if (keys['ArrowDown']) padL.y += PAD_SPD;
+  }
+  padL.y = Math.max(0, Math.min(H - PAD_H, padL.y));
+
+  // 右パドル
+  if (cpuMode) {
+    moveCPU();
+  } else {
+    if (keys['ArrowUp'])   padR.y -= PAD_SPD;
+    if (keys['ArrowDown']) padR.y += PAD_SPD;
+    padR.y = Math.max(0, Math.min(H - PAD_H, padR.y));
+  }
+
+  // ボール移動
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  // 上下壁
+  if (ball.y <= 0)              { ball.y = 0;           ball.vy *= -1; }
+  if (ball.y + BALL_SZ >= H)   { ball.y = H - BALL_SZ; ball.vy *= -1; }
+
+  // 左パドル衝突
+  const leftEdge = 20 + PAD_W;
+  if (ball.vx < 0 && ball.x <= leftEdge &&
+      ball.y + BALL_SZ >= padL.y && ball.y <= padL.y + PAD_H) {
+    ball.x = leftEdge;
+    rallyCount++;
+    const accel = 1 + rallyCount * 0.04;
+    ball.vx =  Math.abs(ball.vx) * accel;
+    ball.vy = ((ball.y + BALL_SZ/2) - (padL.y + PAD_H/2)) * 0.18;
+  }
+
+  // 右パドル衝突
+  const rightEdge = W - 20 - PAD_W - BALL_SZ;
+  if (ball.vx > 0 && ball.x >= rightEdge &&
+      ball.y + BALL_SZ >= padR.y && ball.y <= padR.y + PAD_H) {
+    ball.x = rightEdge;
+    rallyCount++;
+    const accel = 1 + rallyCount * 0.04;
+    ball.vx = -Math.abs(ball.vx) * accel;
+    ball.vy = ((ball.y + BALL_SZ/2) - (padR.y + PAD_H/2)) * 0.18;
+  }
+
+  // 速度上限
+  const cap = MAX_SPD;
+  if (ball.vx >  cap) ball.vx =  cap;
+  if (ball.vx < -cap) ball.vx = -cap;
+  if (ball.vy >  cap) ball.vy =  cap;
+  if (ball.vy < -cap) ball.vy = -cap;
+
+  // 得点
+  if (ball.x < 0) {
+    scoreR++;
+    if (scoreR >= 7) { state = 'over'; return; }
+    resetBall(1);
+  }
+  if (ball.x > W) {
+    scoreL++;
+    if (scoreL >= 7) { state = 'over'; return; }
+    resetBall(-1);
+  }
+}
+
+// ------- 描画 -------
+function draw() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // センターライン
+  ctx.setLineDash([10, 10]);
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // スコア
+  const fs = Math.round(H * 0.12);
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${fs}px Courier New`;
+  ctx.textAlign = 'center';
+  ctx.fillText(scoreL, W/2 - W*0.13, fs + 4);
+  ctx.fillText(scoreR, W/2 + W*0.13, fs + 4);
+
+  if (cpuMode) {
+    ctx.font = `${Math.round(H*0.04)}px Courier New`;
+    ctx.fillStyle = '#444';
+    ctx.textAlign = 'right';
+    ctx.fillText('CPU', W - 8, 18);
+  }
+
+  // パドル・ボール
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(20, padL.y, PAD_W, PAD_H);
+  ctx.fillRect(W - 20 - PAD_W, padR.y, PAD_W, PAD_H);
+  ctx.fillRect(ball.x, ball.y, BALL_SZ, BALL_SZ);
+
+  // ラリー数
+  if (state === 'play') {
+    ctx.fillStyle = '#333';
+    ctx.font = `${Math.round(H*0.035)}px Courier New`;
+    ctx.textAlign = 'center';
+    ctx.fillText('rally ' + rallyCount, W/2, H - 8);
+  }
+
+  // オーバーレイ
+  if (state === 'idle' || state === 'over') {
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    if (state === 'over') {
+      const winner = scoreL >= 7
+        ? (cpuMode ? 'あなたの勝ち！' : '左の勝ち！')
+        : (cpuMode ? 'CPUの勝ち！'   : '右の勝ち！');
+      ctx.font = `bold ${Math.round(H*0.065)}px Courier New`;
+      ctx.fillText(winner, W/2, H/2 - 20);
+      ctx.font = `${Math.round(H*0.04)}px Courier New`;
+      ctx.fillText('タップでもう一度', W/2, H/2 + 24);
+    } else {
+      ctx.font = `bold ${Math.round(H*0.055)}px Courier New`;
+      ctx.fillText('タップでスタート', W/2, H/2);
+    }
+  }
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+
+function startGame() {
+  if (state === 'idle' || state === 'over') {
+    scoreL = 0; scoreR = 0;
+    init();
+    state = 'play';
+    document.getElementById('msg').textContent = '先に7点取ったほうが勝ち！';
+  }
+}
+
+// ------- キーボード -------
+function handleKeyDown(e) {
+  keys[e.key] = true;
+  keys[e.code] = true;
+  if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); startGame(); }
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+      e.code === 'ArrowUp' || e.code === 'ArrowDown') e.preventDefault();
+}
+function handleKeyUp(e) {
+  keys[e.key] = false;
+  keys[e.code] = false;
+}
+window.addEventListener('keydown', handleKeyDown);
+window.addEventListener('keyup', handleKeyUp);
+canvas.addEventListener('click', () => canvas.focus());
+canvas.focus();
+
+// ------- タッチ操作（シンプル版）-------
+// 各タッチIDがどちらのパドルか記録する辞書
+const touchMap = {};  // identifier -> 'L' or 'R'
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  for (const t of e.changedTouches) {
+    // 画面上のX位置でどちらのパドルか判定
+    const screenX = t.clientX - rect.left;
+    const side = screenX < rect.width / 2 ? 'L' : 'R';
+    touchMap[t.identifier] = side;
+
+    // 即座にY位置を反映
+    const ty = (t.clientY - rect.top) * (H / rect.height);
+    if (side === 'L') padL.y = Math.max(0, Math.min(H - PAD_H, ty - PAD_H/2));
+    if (side === 'R' && !cpuMode) padR.y = Math.max(0, Math.min(H - PAD_H, ty - PAD_H/2));
+  }
+  startGame();
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const scaleY = H / rect.height;
+  for (const t of e.changedTouches) {
+    const side = touchMap[t.identifier];
+    const ty = (t.clientY - rect.top) * scaleY;
+    if (side === 'L') padL.y = Math.max(0, Math.min(H - PAD_H, ty - PAD_H/2));
+    if (side === 'R' && !cpuMode) padR.y = Math.max(0, Math.min(H - PAD_H, ty - PAD_H/2));
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  for (const t of e.changedTouches) {
+    delete touchMap[t.identifier];
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchcancel', e => {
+  for (const t of e.changedTouches) {
+    delete touchMap[t.identifier];
+  }
+}, { passive: false });
+
+init();
+loop();
+</script>
+</body>
+</html>
