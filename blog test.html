@@ -1,0 +1,90 @@
+{
+  "mcpServers": {
+    "webmcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@jason.today/webmcp@latest",
+        "--mcp"
+      ]
+    }
+  },
+  "coworkUserFilesPath": "/Users/jazz71655/Claude",
+  "preferences": {
+    "coworkScheduledTasksEnabled": false,
+    "coworkHipaaRestricted": false,
+    "ccdScheduledTasksEnabled": false,
+    "bypassPermissionsGateByAccount": {
+      "cd2788a5-d71b-44b9-a5a4-a10d52b717d5": false
+    },
+    "coworkWebSearchEnabled": true,
+    "coworkModelAutoFallbackByAccount": {
+      "cd2788a5-d71b-44b9-a5a4-a10d52b717d5": true
+    },
+    "remoteToolsDeviceName": "jazz71655nomacbook-pro-local",
+    "epitaxyPrefs": {
+      "starred-local-code-sessions": [],
+      "starred-cowork-spaces": [],
+      "starred-session-groups": [],
+      "dframe-local-slice": {
+        "pinnedOrder": [],
+        "customGroupAssignments": {},
+        "customGroupOrder": {}
+      },
+      "desktop-frame.paneStore.v1": {
+        "state": {
+          "extraPanesByMode": {},
+          "colWeightsByMode": {},
+          "rowSplit": 0.5,
+          "draftNonce": 0
+        },
+        "version": 4
+      },
+      "ccd-sessions-filter": {
+        "state": {
+          "selectedProjects": []
+        },
+        "version": 0
+      }
+    }
+  }
+}<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 50px;
+        }
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin: 20px 40px;
+        }
+    </style>
+</head>
+<body>
+    <h1>論点整理：国家戦略と企業経営の評価軸が混在していることへの批判</h1>
+    <p>Anthropicの主張は、「米国はComputeを握っているので、その優位を政策で維持すべき」という国家安全保障の議論です。一方で、企業の顧客が評価するのは「そのAIを使って安定して利益を出せるか」です。この二つは一致しません。</p>
+    <p>特に興味深いのは、Anthropic自身が実証した最大の強みは<strong>Claude Codeによる自律的なソフトウェア開発</strong>だったことです。無料プランを含め、多くの開発者が長時間のコーディングエージェントを体験できる環境を提供し、市場を一歩前に進めました。これは実行力という点では他社をリードしたと言えるでしょう。</p>
+    <p>しかし、その先にはまだ大きなギャップがあります：</p>
+    <ul>
+        <li>自律的に数週間〜数か月の開発プロジェクトを任せられるのか</li>
+        <li>人間のレビューをどこまで削減できるのか</li>
+        <li>最終的な請負責任を負うSIerや受託開発会社が、その品質を保証できるのか</li>
+    </ul>
+    <p>この部分は、業界全体として十分な検証が終わっていません。</p>
+    <p>さらに、経営者の視点では<strong>価格の予測可能性</strong>も重要です。例えば電力料金なら、部屋の広さ、外気温、使用時間から、おおよその月額コストを予測できます。しかし現在のLLMでは、タスクの複雑さ、リトライ回数、推論時間、エージェントのループ回数によってコストが大きく変動します。</p>
+    <p>つまり、「この案件をAIで受託したら、最終的にいくらAPIコストがかかるのか」を高い精度で見積もれる段階には、まだ達していません。</p>
+    <p>そのため、企業が本格的にAIへ業務を移行するには、品質の再現性、コストの予測可能性、責任分界点の3点が確立される必要があります。もしそれがクラウドLLMで実現できないのであれば、企業は初期投資（CAPEX）としてGPUサーバーを購入し、中国製を含むオープンウェイトLLMを社内で運用する選択肢を検討するでしょう。API課金というOPEXモデルより、長期的なコストを管理しやすいからです。</p>
+    <p>この観点から見ると、Anthropicの提言には一つの矛盾も見えてきます。「米国はGPUという戦略資産を握っているのだから、その優位を政府が守るべきだ」という主張は国家戦略として理解できます。しかし企業は、国家の競争力ではなく、自社のROIと事業継続性を基準に判断します。クラウドAIの品質・価格・責任が十分に予測可能でなければ、企業は自社管理できるローカルLLMへ投資するインセンティブを持ちます。</p>
+    <p>つまり、<strong>GPUを握っていることと、クラウドAIサービスが市場で選ばれ続けることは別問題</strong>です。Anthropicが米国政府との協調を訴えるのであれば、国家安全保障だけでなく、企業が安心して受託開発や基幹業務に利用できる「実行力・信頼性・価格予測性」を市場で証明し続ける必要があります。それができなければ、企業はより管理しやすいオンプレミスや中国製オープンモデルへ資本を振り向ける可能性があります。</p>
+</body>
+</html>
