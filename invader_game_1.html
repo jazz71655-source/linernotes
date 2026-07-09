@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>INVADER</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    overflow: hidden;
+    height: 100%;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  #wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+  }
+  #gameCanvas {
+    background: #000;
+    border: 2px solid #2f2f2f;
+    max-width: 100vw;
+    max-height: 100vh;
+    touch-action: none;
+    outline: none;
+  }
+  #hint {
+    position: fixed;
+    bottom: 6px;
+    width: 100%;
+    text-align: center;
+    color: #4a4a4a;
+    font-family: monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="gameCanvas" width="480" height="640" tabindex="0"></canvas>
+</div>
+<div id="hint">SPACE:方向転換 / ↑:ショット &nbsp;|&nbsp; タップ:方向転換 / ダブルタップ:ショット &nbsp;|&nbsp; ※最初に画面を1回クリック/タップしてください</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // ---------- responsive scaling ----------
+  function resize() {
+    const scale = Math.min(window.innerWidth / W, window.innerHeight / H, 1.3);
+    canvas.style.width = (W * scale) + 'px';
+    canvas.style.height = (H * scale) + 'px';
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ---------- game constants ----------
+  const PLAYER_SPEED = 4;
+  const PLAYER_W = 36;
+  const PLAYER_H = 18;
+  const BULLET_SPEED = 8;
+  const ENEMY_BULLET_SPEED = 4;
+  const ENEMY_ROWS = 5;
+  const ENEMY_COLS = 8;
+  const ENEMY_W = 30;
+  const ENEMY_H = 20;
+  const ENEMY_GAP_X = 14;
+  const ENEMY_GAP_Y = 16;
+  const ENEMY_TOP = 60;
+  const ENEMY_START_X = 40;
+
+  // ---------- game state ----------
+  let player, bullets, enemyBullets, enemies, score, lives, gameOver, gameWin;
+  let enemyDir, enemySpeed, enemyMoveTimer, enemyMoveInterval;
+  let lastShotTime = 0;
+  const SHOT_COOLDOWN = 350;
+
+  function initGame() {
+    player = {
+      x: W / 2 - PLAYER_W / 2,
+      y: H - 50,
+      dir: 'right' // current auto-move direction
+    };
+    dirCycleIndex = 0;
+    bullets = [];
+    enemyBullets = [];
+    enemies = [];
+    score = 0;
+    lives = 3;
+    gameOver = false;
+    gameWin = false;
+    enemyDir = 1;
+    enemySpeed = 1;
+    enemyMoveTimer = 0;
+    enemyMoveInterval = 40; // frames between enemy grid steps
+
+    for (let r = 0; r < ENEMY_ROWS; r++) {
+      for (let c = 0; c < ENEMY_COLS; c++) {
+        enemies.push({
+          x: ENEMY_START_X + c * (ENEMY_W + ENEMY_GAP_X),
+          y: ENEMY_TOP + r * (ENEMY_H + ENEMY_GAP_Y),
+          alive: true,
+          row: r
+        });
+      }
+    }
+  }
+
+  // ---------- focus handling ----------
+  // Some embedded/preview contexts don't give the page keyboard focus until
+  // the user interacts, so keydown events never arrive. Force focus onto
+  // the canvas on load and on every pointer interaction.
+  canvas.focus();
+  window.addEventListener('load', () => canvas.focus());
+  canvas.addEventListener('mousedown', () => canvas.focus());
+  canvas.addEventListener('touchstart', () => canvas.focus(), { passive: true });
+
+  // ---------- input: keyboard ----------
+  function handleKey(e) {
+    const code = e.code || e.key; // fallback for older browsers
+    if (code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+      e.preventDefault();
+      if (gameOver) { initGame(); return; }
+      toggleDirection();
+    } else if (code === 'ArrowUp' || e.keyCode === 38) {
+      e.preventDefault();
+      if (gameOver) { initGame(); return; }
+      fireBullet();
+    }
+  }
+  window.addEventListener('keydown', handleKey);
+
+  const DIR_CYCLE = ['right', 'stop', 'left', 'stop'];
+  let dirCycleIndex = 0;
+
+  function toggleDirection() {
+    dirCycleIndex = (dirCycleIndex + 1) % DIR_CYCLE.length;
+    player.dir = DIR_CYCLE[dirCycleIndex];
+  }
+
+  function fireBullet() {
+    const now = Date.now();
+    if (now - lastShotTime < SHOT_COOLDOWN) return;
+    lastShotTime = now;
+    bullets.push({ x: player.x + PLAYER_W / 2 - 2, y: player.y - 10 });
+  }
+
+  // ---------- input: touch (tap = toggle, double tap = shoot) ----------
+  let lastTapTime = 0;
+  const DOUBLE_TAP_MS = 300;
+
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (gameOver) { initGame(); return; }
+    const now = Date.now();
+    if (now - lastTapTime < DOUBLE_TAP_MS) {
+      fireBullet();
+      lastTapTime = 0; // reset so a third quick tap doesn't chain oddly
+    } else {
+      toggleDirection();
+      lastTapTime = now;
+    }
+  }, { passive: false });
+
+  // also allow mouse click for desktop testing without keyboard
+  canvas.addEventListener('mousedown', () => {
+    if (gameOver) { initGame(); }
+  });
+
+  // ---------- update ----------
+  function update() {
+    if (gameOver) return;
+
+    // player auto-move
+    if (player.dir === 'right') {
+      player.x += PLAYER_SPEED;
+      if (player.x + PLAYER_W > W) player.x = W - PLAYER_W;
+    } else if (player.dir === 'left') {
+      player.x -= PLAYER_SPEED;
+      if (player.x < 0) player.x = 0;
+    }
+    // 'stop' state: no movement
+
+    // player bullets
+    for (let b of bullets) b.y -= BULLET_SPEED;
+    bullets = bullets.filter(b => b.y > -10);
+
+    // enemy bullets
+    for (let b of enemyBullets) b.y += ENEMY_BULLET_SPEED;
+    enemyBullets = enemyBullets.filter(b => b.y < H + 10);
+
+    // enemy movement (stepwise classic style)
+    enemyMoveTimer++;
+    const aliveEnemies = enemies.filter(en => en.alive);
+    const speedFactor = Math.max(1, Math.floor(aliveEnemies.length / 6));
+    const currentInterval = Math.max(6, enemyMoveInterval - (ENEMY_ROWS * ENEMY_COLS - aliveEnemies.length) * 0.8);
+
+    if (enemyMoveTimer >= currentInterval) {
+      enemyMoveTimer = 0;
+      let hitEdge = false;
+      for (let en of aliveEnemies) {
+        const nextX = en.x + enemyDir * 10;
+        if (nextX < 0 || nextX + ENEMY_W > W) hitEdge = true;
+      }
+      if (hitEdge) {
+        enemyDir *= -1;
+        for (let en of aliveEnemies) en.y += 16;
+      } else {
+        for (let en of aliveEnemies) en.x += enemyDir * 10;
+      }
+    }
+
+    // enemy random fire
+    if (aliveEnemies.length > 0 && Math.random() < 0.02) {
+      const shooter = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+      enemyBullets.push({ x: shooter.x + ENEMY_W / 2 - 2, y: shooter.y + ENEMY_H });
+    }
+
+    // collisions: player bullets vs enemies
+    for (let en of enemies) {
+      if (!en.alive) continue;
+      for (let b of bullets) {
+        if (b.x < en.x + ENEMY_W && b.x + 4 > en.x && b.y < en.y + ENEMY_H && b.y + 10 > en.y) {
+          en.alive = false;
+          b.y = -100; // mark for removal
+          score += 10;
+        }
+      }
+    }
+    bullets = bullets.filter(b => b.y > -50);
+
+    // collisions: enemy bullets vs player
+    for (let b of enemyBullets) {
+      if (b.x < player.x + PLAYER_W && b.x + 4 > player.x && b.y < player.y + PLAYER_H && b.y + 10 > player.y) {
+        b.y = H + 100;
+        lives--;
+        if (lives <= 0) gameOver = true;
+      }
+    }
+    enemyBullets = enemyBullets.filter(b => b.y < H + 50);
+
+    // enemies reaching player line = game over
+    for (let en of enemies) {
+      if (en.alive && en.y + ENEMY_H >= player.y) {
+        gameOver = true;
+      }
+    }
+
+    // win condition
+    if (enemies.every(en => !en.alive)) {
+      gameWin = true;
+      gameOver = true;
+    }
+  }
+
+  // ---------- draw ----------
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // player ship
+    ctx.fillStyle = '#4CFF6E';
+    ctx.fillRect(player.x, player.y, PLAYER_W, PLAYER_H);
+    ctx.fillRect(player.x + PLAYER_W / 2 - 3, player.y - 8, 6, 8);
+
+    // player bullets
+    ctx.fillStyle = '#FFFFFF';
+    for (let b of bullets) ctx.fillRect(b.x, b.y, 4, 10);
+
+    // enemy bullets
+    ctx.fillStyle = '#FF5555';
+    for (let b of enemyBullets) ctx.fillRect(b.x, b.y, 4, 10);
+
+    // enemies
+    for (let en of enemies) {
+      if (!en.alive) continue;
+      const colors = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#C879FF'];
+      ctx.fillStyle = colors[en.row % colors.length];
+      ctx.fillRect(en.x, en.y, ENEMY_W, ENEMY_H);
+    }
+
+    // HUD
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '16px monospace';
+    ctx.fillText('SCORE: ' + score, 10, 20);
+    ctx.fillText('LIVES: ' + lives, W - 100, 20);
+
+    if (gameOver) {
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(0, H / 2 - 60, W, 120);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '28px monospace';
+      const msg = gameWin ? 'YOU WIN!' : 'GAME OVER';
+      ctx.textAlign = 'center';
+      ctx.fillText(msg, W / 2, H / 2 - 10);
+      ctx.font = '14px monospace';
+      ctx.fillText('SPACE / TAP / CLICK でリスタート', W / 2, H / 2 + 20);
+      ctx.textAlign = 'left';
+    }
+  }
+
+  // ---------- loop ----------
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  initGame();
+  loop();
+})();
+</script>
+</body>
+</html>
